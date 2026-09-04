@@ -1,4 +1,4 @@
-import { Area, Course, Curriculum, TimetableProvider } from "beecal-common/dist";
+import { Area, Course, Curriculum, Teaching, TimetableProvider } from "beecal-common/dist";
 import temporaryDirectory from "temp-dir";
 import fs from "node:fs/promises";
 import fs_stream from "node:fs";
@@ -108,5 +108,25 @@ export class UniboProvider implements TimetableProvider {
                 return [];
             });
         return raw.map(x => { return { id: x.value, name: x.label } });
+    }
+
+    async getTeachings(courseId: string, curriculum: string, year: number): Promise<Teaching[]> {
+        let unibo_url = courseId.split('§')[1];
+        let timetable_url = await this.#getTimetableUrlGivenUniboUrl(unibo_url);
+        var type = timetable_url.split("/")[3];
+        var link = timetable_url + "/" + LANGUAGE[type] + "?anno=" + year + "&curricula=" + curriculum;
+        return fetch(link).then(x => x.text())
+            .then(function (html) {
+                var $ = cheerio.load(html);
+                var inputs = [];
+                $("#insegnamenti-popup ul li input").each(function (_index, element) {
+                    inputs.push($(element).attr("value"));
+                });
+                var labels = [];
+                $("#insegnamenti-popup ul li label").each(function (_index, element) {
+                    labels.push($(element).text());
+                });
+                return inputs.map((x, i) => { return { id: x, name: labels[i] } });
+            })
     }
 }

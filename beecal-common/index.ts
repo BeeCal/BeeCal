@@ -6,6 +6,7 @@ export interface TimetableProvider {
     getAreas(): Promise<Area[]>,
     getCourses(areaId: string): Promise<Course[]>,
     getCurricula(courseId: string): Promise<Curriculum[]>,
+    getTeachings(courseId: string, curriculum: string, year: number): Promise<Teaching[]>,
 }
 
 export interface Area {
@@ -21,6 +22,11 @@ export interface Course {
 }
 
 export interface Curriculum {
+    id: string,
+    name: string,
+}
+
+export interface Teaching {
     id: string,
     name: string,
 }
