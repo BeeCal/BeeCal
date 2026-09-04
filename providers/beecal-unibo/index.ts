@@ -1,4 +1,4 @@
-import { Area, Course, Curriculum, Teaching, TimetableProvider } from "beecal-common/dist";
+import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common/dist";
 import temporaryDirectory from "temp-dir";
 import fs from "node:fs/promises";
 import fs_stream from "node:fs";
@@ -128,5 +128,54 @@ export class UniboProvider implements TimetableProvider {
                 });
                 return inputs.map((x, i) => { return { id: x, name: labels[i] } });
             })
+    }
+
+    async getLessons(courseId: string, curriculum: string, year: number, teachingIDsFilter?: Set<string>): Promise<Lesson[]> {
+        let unibo_url = courseId.split('§')[1];
+        let timetable_pieces = (await this.#getTimetableUrlGivenUniboUrl(unibo_url)).split('/');
+        var type = timetable_pieces[3];
+        var course = timetable_pieces[4];
+        var root = "https://corsi.unibo.it";
+        var link = [root, type, course, LANGUAGE[type], '@@orario_reale_json?anno=' + year].join("/");
+        link += "&curricula=" + curriculum;
+        /*for (var i = 0; i < lectures.length; i++) {
+            link += "&insegnamenti=" + lectures[i]["lecture_id"];
+        }*/
+        link += "&calendar_view=";
+
+        let json = await fetch(link).then(x => x.json()).catch(function (err) {
+            console.error(err);
+            return "An error occurred while creating the calendar.";
+        });
+
+        let calendar: Lesson[] = [];
+        for (var l of json) {
+            if (!(teachingIDsFilter.has(l.extCode.split('|')[0]) || teachingIDsFilter.has(l.extCode))) {
+                continue;
+            }
+            const start = new Date(l.start);
+            const end = new Date(l.end);
+            var location = null;
+            if (l.aule && Array.isArray(l.aule) && l.aule.length > 0) {
+                location = l.aule[0].des_risorsa + ", " + l.aule[0].des_indirizzo;
+            }
+            var url = null;
+            if (!(l.teams === undefined) && !(l.teams === null)) {
+                url = encodeURI(l.teams);
+            }
+            var prof = null;
+            if (!(l.docente === undefined) && !(l.docente === null)) {
+                prof = l.docente;
+            }
+            calendar.push({
+                title: l.title,
+                start,
+                end,
+                location,
+                url,
+                teacher: prof === null ? undefined : { name: prof as string, email: prof.toLowerCase().replace(/\s/g, ".") + "@unibo.it" }
+            });
+        }
+        return calendar
     }
 }
