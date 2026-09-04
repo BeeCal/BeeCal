@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "beecal-common": "file:../../beecal-common",
+    "cheerio": "^1.0.0-rc.10",
     "csv-parser": "^3.2.1",
     "temp-dir": "^3.0.0"
   }

@@ -1,12 +1,22 @@
-import { Area, Course, TimetableProvider } from "beecal-common/dist";
+import { Area, Course, Curriculum, TimetableProvider } from "beecal-common/dist";
 import temporaryDirectory from "temp-dir";
 import fs from "node:fs/promises";
 import fs_stream from "node:fs";
 import csv from "csv-parser";
+import * as cheerio from "cheerio";
 
 const OPENDATA_DIR = `${temporaryDirectory}/beecal-unibo`;
 const OPENDATA_FILE = `${OPENDATA_DIR}/corsi.csv`;
 const OPENDATA_VERSION = `${OPENDATA_DIR}/info`;
+
+const LANGUAGE = {
+    "magistralecu": "orario-lezioni",
+    "magistrale": "orario-lezioni",
+    "laurea": "orario-lezioni",
+    "singlecycle": "timetable",
+    "1cycle": "timetable",
+    "2cycle": "timetable"
+}
 
 export class UniboProvider implements TimetableProvider {
     institutionName: string = "Alma Mater Studiorum - Università di Bologna";
@@ -68,5 +78,35 @@ export class UniboProvider implements TimetableProvider {
                     res(courses);
                 });
         });
+    }
+
+    #getTimetableUrlGivenUniboUrl(unibo_url: string): Promise<string | undefined> {
+        return fetch(unibo_url).then(x => x.text())
+            .then(function (html) {
+                var $ = cheerio.load(html);
+                var timetable_url = $(".social-contact ul li ul li p a").first().attr("href");
+                return timetable_url;
+            })
+            .catch(function (err) {
+                console.log(err);
+                return undefined;
+            });
+    }
+
+    async getCurricula(courseId: string): Promise<Curriculum[]> {
+        const timetable_url: string = await this.#getTimetableUrlGivenUniboUrl(courseId.split('§')[1]);
+        if (timetable_url === undefined) {
+            return [];
+        }
+        var type = timetable_url.split("/")[3];
+        var curricula_url = timetable_url + "/" + LANGUAGE[type] + "/@@available_curricula";
+        // console.log(curricula_url);
+        // ex. https://corsi.unibo.it/laurea/clei/orario-lezioni/@@available_curricula
+        const raw: { value: string, label: string }[] = await fetch(curricula_url).then(x => x.json())
+            .catch(function (err) {
+                console.log(err);
+                return [];
+            });
+        return raw.map(x => { return { id: x.value, name: x.label } });
     }
 }
