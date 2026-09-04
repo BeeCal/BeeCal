@@ -6,6 +6,7 @@ import { iCalendar } from "./icalendar.js";
 import { dbRun, dbGet, dbAll } from "./db.js";
 import rb from "randombytes";
 import b32 from "base32.js";
+import { UniboProvider } from "beecal-unibo";
 
 const LANGUAGE = {
     "magistralecu": "orario-lezioni",
@@ -17,6 +18,7 @@ const LANGUAGE = {
 }
 const ONE_UNIX_DAY = 24 * 3600;
 const DATA_FILE = "./opendata/corsi.csv";
+const PROVIDER = new UniboProvider();
 
 class UniboEventClass {
     constructor(title, start, end, location, url, docente) {
@@ -25,7 +27,7 @@ class UniboEventClass {
         this.end = end;
         this.location = location;
         this.url = url;
-        if(docente !== null) {
+        if (docente !== null) {
             this.organizer = { name: docente, email: docente.toLowerCase().replace(/\s/g, ".") + "@unibo.it" };
         } else {
             this.organizer = null
@@ -40,7 +42,7 @@ export function generateId(length) {
 }
 
 export function log_hit(id, ua) {
-    let query = "INSERT INTO hits VALUES (?, ?, ?)";
+    let query = "INSERT INTO hits(date, enrollment_id, user_agent) VALUES (?, ?, ?)";
     return dbRun(query, [new Date().getTime(), id, ua]);
 }
 
@@ -50,7 +52,7 @@ export async function log_enrollment(params, lectures) {
 
     try {
         await dbRun(enrollment_query, params);
-        
+
         // Use Promise.all to handle multiple asynchronous calls
         await Promise.all(
             lectures.map((lecture) => dbRun(lectures_query, [params[0], lecture]))
@@ -61,109 +63,26 @@ export async function log_enrollment(params, lectures) {
 }
 
 export function getAreas() {
-    //Reading csv file and building an array of unique values
-    var results = [];
-    return new Promise((res, rej) => {
-        fs.createReadStream(DATA_FILE)
-            .pipe(csv())
-            .on("data", (data) => {
-                if (data.ambiti != "") {
-                    results.push(data)
-                }
-            })
-            .on("end", () => {
-                var areas = results.map(
-                    function ({ ambiti }) {
-                        return ambiti;
-                    }
-                );
-                areas = Array.from(new Set(areas)).sort();
-                res(areas);
-            });
-    });
+    return PROVIDER.getAreas();
 }
 
-export function getCoursesGivenArea(area) {
-    var results = [];
-    return new Promise((res, rej) => {
-        fs.createReadStream(DATA_FILE)
-            .pipe(csv())
-            .on("data", (data) => results.push(data))
-            .on("end", () => {
-                let courses = []
-                for (let i = 0; i < results.length; i++) {
-                    if (results[i].ambiti === area) {
-                        var course = new Object();
-                        course.code = results[i].corso_codice;
-                        course.description = results[i].corso_descrizione;
-                        course.url = results[i].url;
-                        course.duration = results[i].durata;
-                        course.type = results[i].tipologia;
-                        courses.push(course);
-                    }
-                }
-                res(courses);
-            });
-    });
+export function getCoursesGivenArea(areaId) {
+    return PROVIDER.getCourses(areaId);
 }
 
-// Finding "SITO DEL CORSO" from https://www.unibo.it/it/didattica/corsi-di-studio/corso/[year]/[code]
-export async function getTimetableUrlGivenUniboUrl(unibo_url, callback) {
-    // console.log(unibo_url);
-    return await fetch(unibo_url).then(x => x.text())
-        .then(function (html) {
-            var $ = cheerio.load(html);
-            var timetable_url = $(".social-contact ul li ul li p a").first().attr("href");
-            return timetable_url;
-        })
-        .catch(function (err) {
-            console.log(err);
-            return undefined;
-        });
+export async function getCurriculaGivenCourseId(courseId) {
+    return PROVIDER.getCurricula(courseId);
 }
 
-export async function getCurriculaGivenCourseUrl(unibo_url) {
-    let timetable_url = await getTimetableUrlGivenUniboUrl(unibo_url);
-    const json_err = [{
-        "selected": false,
-        "value": undefined,
-        "label": "NON SONO PRESENTI CURRICULA"
-    }];
-    if (timetable_url === undefined) {
-        return json_err;
-    }
-    var type = timetable_url.split("/")[3];
-    var curricula_url = timetable_url + "/" + LANGUAGE[type] + "/@@available_curricula";
-    // console.log(curricula_url);
-    // ex. https://corsi.unibo.it/laurea/clei/orario-lezioni/@@available_curricula
-    return await fetch(curricula_url).then(x => x.json())
-        .catch(function (err) {
-            console.log(err);
-            return json_err;
-        });
-}
-
-export async function getTimetable(unibo_url, year, curriculum) {
-    let timetable_url = await getTimetableUrlGivenUniboUrl(unibo_url);
-    var type = timetable_url.split("/")[3];
-    var link = timetable_url + "/" + LANGUAGE[type] + "?anno=" + year + "&curricula=" + curriculum;
-    return fetch(link).then(x => x.text())
-        .then(function (html) {
-            var $ = cheerio.load(html);
-            var inputs = [];
-            $("#insegnamenti-popup ul li input").each(function (_index, element) {
-                inputs.push($(element).attr("value"));
-            });
-            var labels = [];
-            $("#insegnamenti-popup ul li label").each(function (_index, element) {
-                labels.push($(element).text());
-            });
+export async function getTimetable(courseId, year, curriculum) {
+    return PROVIDER.getTeachings(courseId, curriculum, year)
+        .then(function (teachings) {
             let lectures_form = '<button class="btn btn-secondary" id="select_or_deselect_all" onclick="return selectOrDeselectAll();">Deseleziona tutti</button>';
             lectures_form += '<div class="container">';
             lectures_form += '<form id="select_lectures" action="/get_calendar_url" method="post"><div class="row"><table>';
-            for (let i = 0; i < inputs.length; i++)
-                lectures_form += '<tr><th><input type="checkbox" class="checkbox" name="lectures" value="' + inputs[i] + '" id="' + inputs[i] + '" checked/></th><th><label for="' + inputs[i] + '">' + labels[i] + '</label></th></tr>';
-            lectures_form += '</table></div><input type="hidden" name="timetable_url" value="' + timetable_url + '"/>';
+            for (let i = 0; i < teachings.length; i++)
+                lectures_form += '<tr><th><input type="checkbox" class="checkbox" name="lectures" value="' + teachings[i].id + '" id="' + teachings[i].id + '" checked/></th><th><label for="' + teachings[i].id + '">' + teachings[i].name + '</label></th></tr>';
+            lectures_form += '</table></div><input type="hidden" name="timetable_url" value="' + courseId + '"/>';
             lectures_form += '<input type="hidden" name="year" value="' + year + '"/>';
             lectures_form += '<input type="hidden" name="curriculum" value="' + curriculum + '"/>';
             lectures_form += '</div>';
@@ -230,53 +149,16 @@ export async function getICalendarEvents(id, ua, alert) {
                 let course = enrollments_info["course"];
                 let year = enrollments_info["year"];
                 let curriculum = enrollments_info["curriculum"];
-                var root = "https://corsi.unibo.it";
-                var link = [root, type, course, LANGUAGE[type], '@@orario_reale_json?anno=' + year].join("/");
-
-                if (curriculum !== undefined) {
-                    link += "&curricula=" + curriculum;
-                }
 
                 let query_lectures = "SELECT lecture_id FROM requested_lectures WHERE enrollment_id = ?";
                 let lectures = await dbAll(query_lectures, [id]);
 
-                /*for (var i = 0; i < lectures.length; i++) {
-                    link += "&insegnamenti=" + lectures[i]["lecture_id"];
-                }*/
-		    let lectureSet = new Set(lectures.map(x => x.lecture_id));
+                let lectureSet = new Set(lectures.map(x => x.lecture_id));
 
-                link += "&calendar_view=";
-
-                let json = await fetch(link).then(x => x.json()).catch(function (err) {
-                    console.error(err);
-                    return "An error occurred while creating the calendar.";
-                });
-
-                let calendar = [];
-                for (var l of json) {
-			if(!(lectureSet.has(l.extCode.split('|')[0])||lectureSet.has(l.extCode))) {
-				continue;
-			}
-                    const start = new Date(l.start);
-                    const end = new Date(l.end);
-                    var location = null;
-                    if (l.aule && Array.isArray(l.aule) && l.aule.length > 0) {
-                        location = l.aule[0].des_risorsa + ", " + l.aule[0].des_indirizzo;
-                    }
-                    var url = null;
-                    if (!(l.teams === undefined) && !(l.teams === null)) {
-                        url = encodeURI(l.teams);
-                    }
-                    var prof = null;
-                    if (!(l.docente === undefined) && !(l.docente === null)) {
-                        prof = l.docente;
-                    }
-                    const event = new UniboEventClass(l.title, start, end, location, url, prof);
-                    calendar.push(event);
-                }
+                let calendar = await PROVIDER.getLessons(course, curriculum, year, lectureSet);
 
                 let cache;
-                if(calendar.length === 0) {
+                if (calendar.length === 0) {
                     cache = false;
                     const start = new Date();
                     const day = 864e5;
@@ -290,7 +172,7 @@ export async function getICalendarEvents(id, ua, alert) {
                 var factory = new iCalendar(alert);
                 vcalendar = factory.ical(calendar);
 
-                if(cache) {
+                if (cache) {
                     await dbRun(`INSERT INTO cache VALUES(?, ?, strftime("%s", "now") + ${ONE_UNIX_DAY})`, [id, vcalendar]);
                 }
             }
@@ -392,26 +274,26 @@ export async function getDeviceStats() {
             GROUP BY truncated_user_agent
             ORDER BY count DESC
         `;
-        let results = await dbAll(query, []);        
+        let results = await dbAll(query, []);
         let data = { x: [], y: [] };
-        
+
         // Show only top 6 devices, group the rest as "Others"
         const topDevices = results.slice(0, 6);
         const otherDevices = results.slice(6);
-        
+
         // Add top devices
         for (const row of topDevices) {
             data.x.push(row.truncated_user_agent);
             data.y.push(row.count);
         }
-        
+
         // Add "Others" if there are remaining devices
         if (otherDevices.length > 0) {
             const othersCount = otherDevices.reduce((sum, row) => sum + row.count, 0);
             data.x.push('Altri');
             data.y.push(othersCount);
         }
-        
+
         return data;
     } catch (error) {
         console.error('Error in getDeviceStats:', error);
@@ -424,13 +306,13 @@ export async function getUrlGenerationByCourseDayByDay() {
         // First get the top 20 courses by enrollment count
         let topCoursesQuery = "SELECT course FROM enrollments GROUP BY course ORDER BY COUNT(*) DESC LIMIT 20;";
         let topCourses = await dbAll(topCoursesQuery, []);
-        
+
         if (topCourses.length === 0) {
             return { courses: [], data: {} };
         }
-        
+
         const courseNames = topCourses.map(row => row.course);
-        
+
         // Get URL generation data for each course day by day
         let query = `
             SELECT 
@@ -441,15 +323,15 @@ export async function getUrlGenerationByCourseDayByDay() {
             WHERE e.course IN (${courseNames.map(() => '?').join(',')})
             GROUP BY e.course, (e.date/86400000)
         `;
-        
+
         let results = await dbAll(query, courseNames);
-        
+
         // Organize data by course
         let dataByCourse = {};
         for (const course of courseNames) {
             dataByCourse[course] = [];
         }
-        
+
         // Process results and fill in missing days with 0 values
         let allDays = new Set();
         for (const row of results) {
@@ -463,13 +345,13 @@ export async function getUrlGenerationByCourseDayByDay() {
                 day: row.day
             });
         }
-        
+
         // Fill missing days with 0 values for each course
         const sortedDays = Array.from(allDays).sort();
         for (const course of courseNames) {
             const courseData = dataByCourse[course];
             const courseDays = new Set(courseData.map(item => item.day));
-            
+
             for (const day of sortedDays) {
                 if (!courseDays.has(day)) {
                     // Find a date for this day from other courses
@@ -483,11 +365,11 @@ export async function getUrlGenerationByCourseDayByDay() {
                     }
                 }
             }
-            
+
             // Sort by day
             courseData.sort((a, b) => a.day - b.day);
         }
-        
+
         return {
             courses: courseNames,
             data: dataByCourse

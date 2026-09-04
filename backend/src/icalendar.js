@@ -63,17 +63,17 @@ export class iCalendar {
 
     event(e) {
         var event = "BEGIN:VEVENT\r\nDTSTAMP:" + this.dt(new Date());
-        if(e.organizer !== null) {
-            event = event + "\r\nORGANIZER;" + this.wrapLine("CN=" + e.organizer.name + ":MAILTO:" + e.organizer.email, 10).replace(/\\:/g, ":");
+        if (e.teacher !== undefined) {
+            event = event + "\r\nORGANIZER;" + this.wrapLine("CN=" + e.teacher.name + ":MAILTO:" + e.teacher.email, 10).replace(/\\:/g, ":");
         }
         event = event + "\r\nUID:" + this.id(e) + "\r\n";
         event = event + "SEQUENCE:0\r\n";
         event = event + "DTSTART:" + this.dt(e.start) + "\r\n";
         event = event + "SUMMARY:" + this.wrapLine(e.title, 8);
-        if(e.url !== null) {
+        if (e.url !== undefined) {
             event = event + "\r\nURL:" + this.wrapLine(e.url, 5, false).replace("\\:", ":");
         }
-        if(e.location !== null) {
+        if (e.location !== undefined) {
             event = event + "\r\nLOCATION:" + this.wrapLine(e.location, 11);
         }
         event = event + "\r\nDTEND:" + this.dt(e.end);

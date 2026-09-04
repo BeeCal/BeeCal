@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "beecal-common": "file:../beecal-common",
+    "beecal-unibo": "file:../providers/beecal-unibo"
+  }
+}

@@ -80,17 +80,17 @@ function getCoursesGivenArea() {
 
         // Setting Courses
         courses.sort((a, b) => {
-            return a.type === b.type ? (a.description > b.description ? 1 : -1) : (a.type > b.type ? 1 : -1);
+            return a.type === b.type ? (a.name > b.name ? 1 : -1) : (a.type > b.type ? 1 : -1);
         })
         for (i = 0; i < courses.length; i++) {
             node = document.createElement("option");
-            text_node = document.createTextNode(courses[i].code + ' - ' + courses[i].description + ' - ' + courses[i].type);
+            text_node = document.createTextNode(courses[i].name + ' - ' + courses[i].type);
             node.appendChild(text_node);
-            dict[courses[i].url] = {
-                "description": courses[i].description + ' - ' + courses[i].type,
+            dict[courses[i].id] = {
+                "description": courses[i].name + ' - ' + courses[i].type,
                 "duration": courses[i].duration
             }
-            node.setAttribute('value', courses[i].url);
+            node.setAttribute('value', courses[i].id);
             document.getElementById('courses').appendChild(node);
         }
 
@@ -181,9 +181,9 @@ function getYearsAndCurriculaGivenCourse() {
         } else {
             for (i = 0; i < curricula.length; i++) {
                 node = document.createElement("option");
-                text_node = document.createTextNode(curricula[i].label);
+                text_node = document.createTextNode(curricula[i].name);
                 node.appendChild(text_node);
-                node.setAttribute('value', curricula[i].value);
+                node.setAttribute('value', curricula[i].id);
                 document.getElementById('curricula').appendChild(node);
             }
             if (curricula.length == 1) {
