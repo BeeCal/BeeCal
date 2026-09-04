@@ -1,4 +1,4 @@
-import { Area, TimetableProvider } from "beecal-common/dist";
+import { Area, Course, TimetableProvider } from "beecal-common/dist";
 import temporaryDirectory from "temp-dir";
 import fs from "node:fs/promises";
 import fs_stream from "node:fs";
@@ -45,6 +45,28 @@ export class UniboProvider implements TimetableProvider {
                     );
                 });
         });
+    }
 
+    getCourses(areaId: string): Promise<Course[]> {
+        const results = [];
+        return new Promise((res, rej) => {
+            fs_stream.createReadStream(OPENDATA_FILE)
+                .pipe(csv())
+                .on("data", (data) => results.push(data))
+                .on("end", () => {
+                    const courses: Course[] = []
+                    for (let i = 0; i < results.length; i++) {
+                        if (results[i].ambiti === areaId) {
+                            courses.push({
+                                id: `${results[i].corso_codice}§${results[i].url}`,
+                                name: results[i].durata,
+                                duration: parseInt(results[i].durata),
+                                type: results[i].tipologia
+                            });
+                        }
+                    }
+                    res(courses);
+                });
+        });
     }
 }
