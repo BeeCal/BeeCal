@@ -41,7 +41,7 @@ export interface Lesson {
     title: string,
     start: Date,
     end: Date,
-    location: string,
+    location?: string,
     url?: string,
     teacher?: Contact,
 }

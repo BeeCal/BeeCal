@@ -9,14 +9,14 @@ const OPENDATA_DIR = `${temporaryDirectory}/beecal-unibo`;
 const OPENDATA_FILE = `${OPENDATA_DIR}/corsi.csv`;
 const OPENDATA_VERSION = `${OPENDATA_DIR}/info`;
 
-const LANGUAGE = {
-    "magistralecu": "orario-lezioni",
-    "magistrale": "orario-lezioni",
-    "laurea": "orario-lezioni",
-    "singlecycle": "timetable",
-    "1cycle": "timetable",
-    "2cycle": "timetable"
-}
+const LANGUAGE: Map<string, string> = new Map([
+    ["magistralecu", "orario-lezioni"],
+    ["magistrale", "orario-lezioni"],
+    ["laurea", "orario-lezioni"],
+    ["singlecycle", "timetable"],
+    ["1cycle", "timetable"],
+    ["2cycle", "timetable"],
+]);
 
 export class UniboProvider implements TimetableProvider {
     institutionName: string = "Alma Mater Studiorum - Università di Bologna";
@@ -58,7 +58,13 @@ export class UniboProvider implements TimetableProvider {
     }
 
     getCourses(areaId: string): Promise<Course[]> {
-        const results = [];
+        const results: {
+            ambiti: string,
+            corso_codice: string,
+            url: string,
+            durata: string,
+            tipologia: string,
+        }[] = [];
         return new Promise((res, rej) => {
             fs_stream.createReadStream(OPENDATA_FILE)
                 .pipe(csv())
@@ -94,12 +100,12 @@ export class UniboProvider implements TimetableProvider {
     }
 
     async getCurricula(courseId: string): Promise<Curriculum[]> {
-        const timetable_url: string = await this.#getTimetableUrlGivenUniboUrl(courseId.split('§')[1]);
+        const timetable_url = await this.#getTimetableUrlGivenUniboUrl(courseId.split('§')[1]);
         if (timetable_url === undefined) {
             return [];
         }
         var type = timetable_url.split("/")[3];
-        var curricula_url = timetable_url + "/" + LANGUAGE[type] + "/@@available_curricula";
+        var curricula_url = timetable_url + "/" + LANGUAGE.get(type) + "/@@available_curricula";
         // console.log(curricula_url);
         // ex. https://corsi.unibo.it/laurea/clei/orario-lezioni/@@available_curricula
         const raw: { value: string, label: string }[] = await fetch(curricula_url).then(x => x.json())
@@ -113,18 +119,21 @@ export class UniboProvider implements TimetableProvider {
     async getTeachings(courseId: string, curriculum: string, year: number): Promise<Teaching[]> {
         let unibo_url = courseId.split('§')[1];
         let timetable_url = await this.#getTimetableUrlGivenUniboUrl(unibo_url);
+        if (timetable_url === undefined) {
+            return [];
+        }
         var type = timetable_url.split("/")[3];
-        var link = timetable_url + "/" + LANGUAGE[type] + "?anno=" + year + "&curricula=" + curriculum;
+        var link = timetable_url + "/" + LANGUAGE.get(type) + "?anno=" + year + "&curricula=" + curriculum;
         return fetch(link).then(x => x.text())
             .then(function (html) {
                 var $ = cheerio.load(html);
-                var inputs = [];
+                var inputs: string[] = [];
                 $("#insegnamenti-popup ul li input").each(function (_index, element) {
-                    inputs.push($(element).attr("value"));
+                    inputs.push($(element).attr("value") || "");
                 });
-                var labels = [];
+                var labels: string[] = [];
                 $("#insegnamenti-popup ul li label").each(function (_index, element) {
-                    labels.push($(element).text());
+                    labels.push($(element).text() || "");
                 });
                 return inputs.map((x, i) => { return { id: x, name: labels[i] } });
             })
@@ -132,11 +141,14 @@ export class UniboProvider implements TimetableProvider {
 
     async getLessons(courseId: string, curriculum: string, year: number, teachingIDsFilter?: Set<string>): Promise<Lesson[]> {
         let unibo_url = courseId.split('§')[1];
-        let timetable_pieces = (await this.#getTimetableUrlGivenUniboUrl(unibo_url)).split('/');
+        let timetable_pieces = (await this.#getTimetableUrlGivenUniboUrl(unibo_url) || "").split('/');
+        if (timetable_pieces.length < 5) {
+            return [];
+        }
         var type = timetable_pieces[3];
         var course = timetable_pieces[4];
         var root = "https://corsi.unibo.it";
-        var link = [root, type, course, LANGUAGE[type], '@@orario_reale_json?anno=' + year].join("/");
+        var link = [root, type, course, LANGUAGE.get(type), '@@orario_reale_json?anno=' + year].join("/");
         link += "&curricula=" + curriculum;
         /*for (var i = 0; i < lectures.length; i++) {
             link += "&insegnamenti=" + lectures[i]["lecture_id"];
@@ -150,16 +162,16 @@ export class UniboProvider implements TimetableProvider {
 
         let calendar: Lesson[] = [];
         for (var l of json) {
-            if (!(teachingIDsFilter.has(l.extCode.split('|')[0]) || teachingIDsFilter.has(l.extCode))) {
+            if (teachingIDsFilter !== undefined && !(teachingIDsFilter.has(l.extCode.split('|')[0]) || teachingIDsFilter.has(l.extCode))) {
                 continue;
             }
             const start = new Date(l.start);
             const end = new Date(l.end);
-            var location = null;
+            var location = undefined;
             if (l.aule && Array.isArray(l.aule) && l.aule.length > 0) {
                 location = l.aule[0].des_risorsa + ", " + l.aule[0].des_indirizzo;
             }
-            var url = null;
+            var url = undefined;
             if (!(l.teams === undefined) && !(l.teams === null)) {
                 url = encodeURI(l.teams);
             }
