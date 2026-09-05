@@ -12,12 +12,12 @@ class UniboEventClass {
         this.title = title;
         this.start = start;
         this.end = end;
-        this.location = location;
-        this.url = url;
+        this.location = location || undefined;
+        this.url = url || undefined;
         if (docente !== null) {
-            this.organizer = { name: docente, email: docente.toLowerCase().replace(/\s/g, ".") + "@unibo.it" };
+            this.teacher = { name: docente, email: docente.toLowerCase().replace(/\s/g, ".") + "@unibo.it" };
         } else {
-            this.organizer = null
+            this.organizer = undefined
         }
     }
 }
