@@ -20,7 +20,7 @@ const LANGUAGE: Map<string, string> = new Map([
 
 export class UniboProvider implements TimetableProvider {
     institutionName: string = "Alma Mater Studiorum - Università di Bologna";
-    contry: string = "it";
+    country: string = "it";
     license: string = "CC-BY-3.0-IT";
 
     async #fetchOpenData() {

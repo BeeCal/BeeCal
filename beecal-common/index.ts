@@ -1,6 +1,6 @@
 export interface TimetableProvider {
     institutionName: string,
-    contry: string,
+    country: string,
     license: string,
 
     getAreas(): Promise<Area[]>,
