@@ -5,6 +5,10 @@ import fs_stream from "node:fs";
 import csv from "csv-parser";
 import * as cheerio from "cheerio";
 
+const OPENDATA_DIR = `${os.tmpdir()}/beecal-unibo`;
+const OPENDATA_FILE = `${OPENDATA_DIR}/corsi.csv`;
+const OPENDATA_VERSION = `${OPENDATA_DIR}/info`;
+
 const LANGUAGE: Map<string, string> = new Map([
     ["magistralecu", "orario-lezioni"],
     ["magistrale", "orario-lezioni"],
@@ -18,22 +22,11 @@ export class UniboProvider implements TimetableProvider {
     institutionName: string = "Alma Mater Studiorum - Università di Bologna";
     contry: string = "it";
     license: string = "CC-BY-3.0-IT";
-    opendata_dir: string = "";
-    opendata_file: string = "";
-
-    constructor() {
-        fs.realpath(os.tmpdir()).then(x => {
-            this.opendata_dir = `${x}/beecal-unibo`;
-            this.opendata_file = `${this.opendata_dir}/corsi.csv`;
-            this.#fetchOpenData();
-        })
-    }
 
     async #fetchOpenData() {
-        const OPENDATA_VERSION = `${this.opendata_dir}/info`;
-        console.log("Updating Unibo open data in " + this.opendata_file)
+        console.log("Updating Unibo open data in " + OPENDATA_FILE)
         // Ensure open data dir presence
-        await fs.mkdir(this.opendata_dir, { recursive: true });
+        await fs.mkdir(OPENDATA_DIR, { recursive: true });
         let response = await fetch("https://dati.unibo.it/api/3/action/package_show?id=degree-programmes").then(x => x.json());
         let datasets = response.result.resources;
         let current = datasets[0];
@@ -42,7 +35,7 @@ export class UniboProvider implements TimetableProvider {
         if (savedVersion != currentVersion) {
             console.log("Fetching new Unibo Open Data version");
             let data = await fetch(current.url).then(x => x.text());
-            await fs.writeFile(this.opendata_file, data);
+            await fs.writeFile(OPENDATA_FILE, data);
             await fs.writeFile(OPENDATA_VERSION, currentVersion);
         } else {
             console.log("No Unibo Open Data update needed");
@@ -52,7 +45,7 @@ export class UniboProvider implements TimetableProvider {
     async getAreas(): Promise<Area[]> {
         const results: string[] = [];
         return new Promise<Area[]>((res, _) => {
-            fs_stream.createReadStream(this.opendata_file)
+            fs_stream.createReadStream(OPENDATA_FILE)
                 .pipe(csv())
                 .on("data", (data) => {
                     if (data.ambiti != "") {
@@ -78,7 +71,7 @@ export class UniboProvider implements TimetableProvider {
             corso_descrizione: string,
         }[] = [];
         return new Promise((res, rej) => {
-            fs_stream.createReadStream(this.opendata_file)
+            fs_stream.createReadStream(OPENDATA_FILE)
                 .pipe(csv())
                 .on("data", (data) => results.push(data))
                 .on("end", () => {
