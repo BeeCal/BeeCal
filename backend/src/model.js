@@ -4,16 +4,7 @@ import rb from "randombytes";
 import b32 from "base32.js";
 import { UniboProvider } from "beecal-unibo";
 
-const LANGUAGE = {
-    "magistralecu": "orario-lezioni",
-    "magistrale": "orario-lezioni",
-    "laurea": "orario-lezioni",
-    "singlecycle": "timetable",
-    "1cycle": "timetable",
-    "2cycle": "timetable"
-}
 const ONE_UNIX_DAY = 24 * 3600;
-const DATA_FILE = "./opendata/corsi.csv";
 const PROVIDER = new UniboProvider();
 
 class UniboEventClass {
