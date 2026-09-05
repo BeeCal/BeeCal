@@ -2,7 +2,6 @@ import express, { json, urlencoded } from "express"
 import "express-handlebars"
 import * as hbs from "express-handlebars"
 import { router } from "./controller.js"
-import { checkForOpendataUpdates } from "./update_opendata.js"
 import { __dirname } from "./utils.js"
 import { initDatabase, validateTokenMiddleware } from "./db.js"
 
@@ -29,15 +28,14 @@ app.use("/", router);
 app.engine("handlebars", hbs.engine());
 app.set("view engine", "handlebars");
 
-// Update opendata on launch
-checkForOpendataUpdates();
+// TODO: launch provider jobs on startup
 
 // Initialize database tables and indexes
 async function initializeApp() {
     try {
         await initDatabase();
         console.log("Database initialized successfully");
-        
+
         // Start server
         app.listen(app.get("port"), app.get("bind-addr"), () => {
             console.log(`UniboClendar started on http://${app.get("bind-addr")}:${app.get("port")}`);
