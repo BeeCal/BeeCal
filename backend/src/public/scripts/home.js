@@ -189,7 +189,7 @@ function getYearsAndCurriculaGivenCourse() {
             if (curricula.length == 1) {
                 var list = document.getElementById('curricula');
                 list.options.selectedIndex = 1;
-                if (curricula[0].value === undefined) {
+                if (curricula[0].id === undefined) {
                     alert("Siamo spiacenti, ma Unibo non ha reso disponibile l'orario per questo corso di studi.\nNon è possibile continuare...");
                 } else {
                     checkFormValidity();
