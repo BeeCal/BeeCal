@@ -194,6 +194,9 @@ export class UniboProvider implements TimetableProvider {
                 teacher: prof === null ? undefined : { name: prof as string, email: prof.toLowerCase().replace(/\s/g, ".") + "@unibo.it" }
             });
         }
+        if (calendar.length == 0) {
+            console.error(`The calendar at ${link} was empty!`);
+        }
         return calendar
     }
 }
