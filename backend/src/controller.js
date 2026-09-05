@@ -39,7 +39,7 @@ async function get_calendar_url(req, res, next) {
     const year = req.body.year;
     const curriculum = req.body.curriculum;
     var lectures = req.body.lectures;
-    if (typeof lectures === undefined || lectures === "") {
+    if (typeof lectures === "undefined" || lectures === "") {
         lectures = [];
     } else if (typeof lectures === "string") {
         lectures = [lectures];
