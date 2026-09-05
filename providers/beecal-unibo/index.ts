@@ -161,10 +161,7 @@ export class UniboProvider implements TimetableProvider {
         }*/
         link += "&calendar_view=";
 
-        let json = await fetch(link).then(x => x.json()).catch(function (err) {
-            console.error(err);
-            return "An error occurred while creating the calendar.";
-        });
+        let json = await fetch(link).then(x => x.json());
 
         let calendar: Lesson[] = [];
         for (var l of json) {

@@ -155,7 +155,10 @@ export async function getICalendarEvents(id, ua, alert) {
 
                 let lectureSet = new Set(lectures.map(x => x.lecture_id));
 
-                let calendar = await PROVIDER.getLessons(course, curriculum, year, lectureSet);
+                let calendar = await PROVIDER.getLessons(course, curriculum, year, lectureSet).catch((e) => {
+                    console.error(e);
+                    return [];
+                });
 
                 let cache;
                 if (calendar.length === 0) {
