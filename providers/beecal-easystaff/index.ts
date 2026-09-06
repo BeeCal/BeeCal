@@ -61,7 +61,7 @@ export class EasyStaffProvider implements TimetableProvider {
             .filter(x => x.scuola == areaId)
             .map(x => {
                 return {
-                    duration: x.elenco_anni.length,
+                    duration: new Set(x.elenco_anni.map(x => x.valore.split("|")[1])).size,
                     id: x.valore,
                     name: x.label,
                     type: x.tipo,
@@ -75,7 +75,7 @@ export class EasyStaffProvider implements TimetableProvider {
             throw new Error(`The course ${courseId} was not found.`);
         }
 
-        const getName = x => {
+        const getName = (x: string) => {
             const splitted = x.split(" - ");
             if (splitted.length != 2) {
                 return x;
@@ -84,7 +84,8 @@ export class EasyStaffProvider implements TimetableProvider {
             }
         }
 
-        return course.elenco_anni.map(x => { return { id: x.valore, name: getName(x.label) } });
+        const curricula = new Map(course.elenco_anni.map(x => [x.valore.split("|")[0], getName(x.label)]));
+        return Array.from(curricula).map(x => { return { id: x[0], name: x[1] } })
     }
     getTeachings(courseId: string, curriculum: string, year: number): Promise<Teaching[]> {
         throw new Error("Method not implemented.");
