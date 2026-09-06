@@ -1,22 +1,6 @@
 import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common";
 import { ESCourse } from "./types";
-
-function parseJs(js: string): Map<string, string> {
-    const regex = /var\s(?<identifier>\S[^\s]*)\s*=\s*(?<value>.*);/g;
-    const result = new Map<string, string>();
-
-    for (const match of js.matchAll(regex)) {
-        const identifier = match.groups?.identifier?.trim();
-        const value = match.groups?.value;
-
-        if (identifier !== undefined && value !== undefined) {
-            result.set(identifier, value);
-        }
-    }
-
-    return result;
-}
-
+import { JSParser } from "./jsparser";
 
 export class EasyStaffProvider implements TimetableProvider {
     comboCall: string;
@@ -39,8 +23,9 @@ export class EasyStaffProvider implements TimetableProvider {
 
     async #setAcademicYear() {
         const response = await fetch(`${this.baseURL}/${this.comboCall}?sw=ec_&aa=1`)
-            .then(x => x.text());
-        const values: { [index: string]: { valore: string } } = JSON.parse(parseJs(response).get("anni_accademici_ec") || "{}");
+            .then(x => x.text())
+            .then(x => new JSParser(x));
+        const values: { [index: string]: { valore: string } } = response.get("anni_accademici_ec");
         const allKeys = Object.keys(values).map(x => parseInt(x)).sort();
         const mostRecent = allKeys[allKeys.length - 1];
         this.academicYear = values[`${mostRecent}`].valore;
@@ -49,14 +34,15 @@ export class EasyStaffProvider implements TimetableProvider {
     async #updateCoursesAndAreas() {
         const response = await fetch(`${this.baseURL}/${this.comboCall}?aa=${this.academicYear}&page=corsi&sw=ec_`)
             .then(x => x.text())
-            .then(x => parseJs(x));
+            .then(x => new JSParser(x));
 
         // Reset
-        this.areas = JSON.parse(response.get("elenco_scuole") || "[]").map((x: { label: string; valore: string; }) => { return { name: x.label, id: x.valore } });
+        this.areas = response.get<{ label: string; valore: string; }[]>("elenco_scuole")
+            .map((x) => { return { name: x.label, id: x.valore } });
         const existingAreas = new Set(this.areas.map(x => x.id));
 
         // Fill in data
-        this.courses = JSON.parse(response.get("elenco_corsi") || "[]");
+        this.courses = response.get("elenco_corsi");
         for (const course of this.courses) {
             course.scuola = course.scuola == "" ? "Default" : course.scuola;
             if (!existingAreas.has(course.scuola)) {
