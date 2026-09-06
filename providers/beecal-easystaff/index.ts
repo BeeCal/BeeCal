@@ -69,8 +69,22 @@ export class EasyStaffProvider implements TimetableProvider {
             })
     }
 
-    getCurricula(courseId: string): Promise<Curriculum[]> {
-        throw new Error("Method not implemented.");
+    async getCurricula(courseId: string): Promise<Curriculum[]> {
+        const course = this.courses.find(x => x.valore == courseId);
+        if (course === undefined) {
+            throw new Error(`The course ${courseId} was not found.`);
+        }
+
+        const getName = x => {
+            const splitted = x.split(" - ");
+            if (splitted.length != 2) {
+                return x;
+            } else {
+                return splitted[1];
+            }
+        }
+
+        return course.elenco_anni.map(x => { return { id: x.valore, name: getName(x.label) } });
     }
     getTeachings(courseId: string, curriculum: string, year: number): Promise<Teaching[]> {
         throw new Error("Method not implemented.");
