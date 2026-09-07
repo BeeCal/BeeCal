@@ -18,8 +18,8 @@ const year = ref<number>();
 const teachings = ref<string[]>();
 const calId = computedAsync(async () => teachings.value === undefined ? undefined : client.getCalId(course.value!, curriculum.value!, year.value!, teachings.value!))
 
-const coursePickerShown = computed(() => course === undefined || curriculum === undefined || year === undefined);
-const teachingsPickerShown = computed(() => !coursePickerShown.value && teachings === undefined);
+const coursePickerShown = computed(() => course.value === undefined || curriculum.value === undefined || year.value === undefined);
+const teachingsPickerShown = computed(() => !coursePickerShown.value && teachings.value === undefined);
 
 </script>
 <template>
@@ -37,7 +37,8 @@ const teachingsPickerShown = computed(() => !coursePickerShown.value && teaching
         }" />
         <TeachingsSelector v-if="teachingsPickerShown" :course="course!" :curriculum="curriculum!" :year="year!"
             @selected="x => teachings = x" />
-        <Loading v-if="!teachingsPickerShown && calId === undefined" component="il tuo calendario" />
+        <Loading v-if="!coursePickerShown && !teachingsPickerShown && calId === undefined"
+            component="il tuo calendario" />
         <Calendar :id="calId" v-if="calId !== undefined" />
     </template>
 </template>
