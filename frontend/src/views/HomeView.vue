@@ -15,7 +15,12 @@ const courses = computedAsync<Course[] | undefined>(async () => {
     if (areas === undefined) {
         return undefined;
     }
-    return await client.getCourses(area.value);
+    const c = await client.getCourses(area.value);
+    c.sort((a, b) => {
+        return a.type === b.type ? (a.name > b.name ? 1 : -1) : (a.type > b.type ? 1 : -1);
+    })
+
+    return c;
 });
 const course = ref("");
 
