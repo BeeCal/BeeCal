@@ -48,6 +48,7 @@ const curricula = computedAsync<[string, Curriculum[]] | undefined>(async () => 
     const c = await client.getCurricula(course.value.id);
     return [course.value.id, c];
 });
+const curriculum = ref("");
 
 client.getAreas().then(x => areas.value = x);
 </script>
@@ -80,14 +81,16 @@ client.getAreas().then(x => areas.value = x);
                     <option v-for="y in years" :value="y">{{ y }}</option>
                 </select>
             </div>
-            <div id="curricula-container" class="mb-3" v-if="courseId != ''">
+            <div class="mb-3" v-if="courseId != ''">
                 <Loading component="i curriculum" v-if="curricula === undefined || curricula[0] != courseId" />
-                <select v-else class="form-select" name="curricula">
+                <select v-model="curriculum" v-else class="form-select" name="curricula">
+                    <option value="">--- Seleziona Curriculum ---</option>
                     <option v-for="curriculum in curricula[1]" :value="curriculum.id">{{ curriculum.name }}</option>
                 </select>
             </div>
             <div>
-                <button class="btn btn-primary d-inline" :disabled="true">Avanti</button>
+                <button class="btn btn-primary d-inline"
+                    :disabled="course === undefined || year === undefined || curriculum == ''">Avanti</button>
             </div>
             <div id="low-connection">Connessione debole...</div>
         </form>
