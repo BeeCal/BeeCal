@@ -89,9 +89,9 @@ client.getAreas().then(x => areas.value = x);
                 </select>
             </div>
             <div>
-                <button class="btn btn-primary d-inline"
+                <input type="button" value="Avanti" class="btn btn-primary d-inline"
                     :disabled="course === undefined || year === undefined || curriculum == ''"
-                    @click="emit('select', courseId, curriculum, year!)">Avanti</button>
+                    @click="emit('select', courseId, curriculum, year!)" />
             </div>
             <div id="low-connection">Connessione debole...</div>
         </form>

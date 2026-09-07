@@ -7,6 +7,10 @@ import { ref } from 'vue';
 const client = new BeeCalClient();
 const unis = ref<University[] | undefined>([{ id: "it.unibo", name: "Alma Mater Studiorum Università di Bologna" }]);
 
+const course = ref<string>();
+const curriculum = ref<string>();
+const year = ref<number>();
+
 </script>
 <template>
     <div class="mt-5 mb-3">
@@ -16,6 +20,11 @@ const unis = ref<University[] | undefined>([{ id: "it.unibo", name: "Alma Mater 
         <Loading component="le università" />
     </template>
     <template v-else>
-        <CourseSelector :universities="unis" />
+        <CourseSelector :universities="unis"
+            v-if="course === undefined || curriculum === undefined || year === undefined" @select="(selCourse, selCurriculum, selYear) => {
+                course = selCourse;
+                curriculum = selCurriculum;
+                year = selYear;
+            }" />
     </template>
 </template>
