@@ -1,0 +1,89 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const { id } = defineProps<{
+  id: string
+}>();
+const url = id;
+</script>
+
+<template>
+  <div class="container" id="main-container">
+    <h6>Clicca sul calendario che vuoi utilizzare e in un attimo hai finito</h6>
+    <section class="d-flex flex-column flex-md-row justify-content-around mt-4" id="box">
+      <!-- Google Calendar Box -->
+      <div class="cal-guide-box mb-4 mb-md-0">
+        <div class="cal-header">
+          <img src="media/google.png" alt="Google Calendar" class="cal-icon">
+          <h3>Aggiungi a Google Calendar</h3>
+        </div>
+        <div class="cal-steps">
+          <div class="step">
+            <span class="step-number">1</span>
+            <p>Clicca il pulsante qui sotto per aprire Google Calendar (Desktop)</p>
+          </div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <p>Incolla il link in <kbd>URL del calendario</kbd></p>
+          </div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <p>Clicca <kbd>Aggiungi calendario</kbd></p>
+          </div>
+          <div class="step">
+            <span class="step-number">4</span>
+            <p>Ora lo troverai in <kbd>Altri calendari</kbd> dove puoi cambiare il nome</p>
+          </div>
+          <div class="step">
+            <span class="step-number">⚠️</span>
+            <p>Potresti dover attendere qualche minuto prima che appaiano gli eventi</p>
+          </div>
+        </div>
+        <a
+          href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl"
+          @click.prevent="navigator.clipboard.writeText(url); window.open('https://calendar.google.com/calendar/u/0/r/settings/addbyurl', '_blank').focus()"
+          class="cal-button google-button"
+        >
+          <img src="media/google.png" alt="Google" class="button-icon"> Copia URL e Apri Google Calendar
+        </a>
+      </div>
+
+      <!-- Apple Calendar Box -->
+      <div class="cal-guide-box">
+        <div class="cal-header">
+          <img src="media/apple.png" alt="Apple Calendar" class="cal-icon">
+          <h3>Aggiungi ad Apple Calendar</h3>
+        </div>
+        <div class="cal-steps">
+          <div class="step">
+            <span class="step-number">1</span>
+            <p>Clicca il pulsante qui sotto per aprire l'app Calendario di Apple</p>
+          </div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <p>Clicca <kbd>Iscriviti</kbd></p>
+          </div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <p>Scegli un nome (e.g. Unibo Calendar) + conferma in alto a destra</p>
+          </div>
+          <div class="step">
+            <span class="step-number">4</span>
+            <p>Ora lo troverai tra i tuoi calendari <kbd>iCloud</kbd></p>
+          </div>
+          <div class="step">
+            <span class="step-number">⚠️</span>
+            <p>Potresti dover attendere qualche minuto prima che appaiano gli eventi</p>
+          </div>
+        </div>
+        <a
+          :href="url"
+          @click.prevent="window.open(url, '_blank').focus()"
+          class="cal-button apple-button"
+        >
+          <img src="media/apple.png" alt="Apple" class="button-icon"> Apri Apple Calendar
+        </a>
+      </div>
+    </section>
+  </div>
+</template>
