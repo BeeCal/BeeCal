@@ -76,7 +76,10 @@ export class MergeProvider implements TimetableProvider {
         const institution = this.#getInstitution(institutionId);
         return institution.getTeachings(localCourseId, curriculum, year);
     }
+
     getLessons(courseId: string, curriculum: string, year: number, teachingIDsFilter?: Set<string>): Promise<Lesson[]> {
-        throw new Error("Method not implemented.");
+        const [institutionId, localCourseId] = extractParts(courseId);
+        const institution = this.#getInstitution(institutionId);
+        return institution.getLessons(localCourseId, curriculum, year, teachingIDsFilter);
     }
 }
