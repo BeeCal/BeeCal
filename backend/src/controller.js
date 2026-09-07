@@ -40,9 +40,9 @@ async function get_teachings(req, res) {
     res.json(teachings);
 }
 
-async function get_calendar_url(req, res, next) {
-    const timetable_url = req.body.timetable_url;
-    const type = "unibo"; // FIXME change with provider ID
+async function create_calendar(req, res, next) {
+    const course = req.body.course;
+    const statsLabel = "unibo"; // FIXME change with uni and course name
     const year = req.body.year;
     const curriculum = req.body.curriculum;
     var lectures = req.body.lectures;
@@ -51,14 +51,14 @@ async function get_calendar_url(req, res, next) {
     } else if (typeof lectures === "string") {
         lectures = [lectures];
     }
-    let url = model.generateUrl(type, timetable_url, year, curriculum, lectures);
-    res.render("link", { "page": "link", "url": url });
+    let id = model.generateCalendar(statsLabel, course, year, curriculum, lectures);
+    res.send(id);
 }
 
 async function get_ical(req, res, next) {
     const id = req.query.id;
     let alert = req.query.alert === undefined ? null : parseInt(req.query.alert);
-    let unibo_cal = await model.getICalendarEvents(id, req.get("User-Agent"), alert);
+    let unibo_cal = await model.getICalendarEvents(req.app.locals.provider, id, req.get("User-Agent"), alert);
     res.type("text/calendar");
     res.send(unibo_cal);
 }
@@ -118,6 +118,7 @@ public_api_router.get("/areas", get_areas);
 public_api_router.get("/courses", get_courses);
 public_api_router.get("/curricula", get_curricula);
 public_api_router.get("/teachings", get_teachings);
+public_api_router.post("/calendar", create_calendar);
 
 export const router = (() => {
     const r = Router();

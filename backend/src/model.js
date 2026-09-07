@@ -2,10 +2,8 @@ import { iCalendar } from "./icalendar.js";
 import { dbRun, dbGet, dbAll } from "./db.js";
 import rb from "randombytes";
 import b32 from "base32.js";
-import { UniboProvider } from "beecal-unibo";
 
 const ONE_UNIX_DAY = 24 * 3600;
-const PROVIDER = new UniboProvider();
 
 class UniboEventClass {
     constructor(title, start, end, location, url, docente) {
@@ -49,18 +47,6 @@ export async function log_enrollment(params, lectures) {
     }
 }
 
-export function getAreas() {
-    return PROVIDER.getAreas();
-}
-
-export function getCoursesGivenArea(areaId) {
-    return PROVIDER.getCourses(areaId);
-}
-
-export async function getCurriculaGivenCourseId(courseId) {
-    return PROVIDER.getCurricula(courseId);
-}
-
 export async function getTimetable(courseId, year, curriculum) {
     return PROVIDER.getTeachings(courseId, curriculum, year)
         .then(function (teachings) {
@@ -89,17 +75,15 @@ export async function getTimetable(courseId, year, curriculum) {
         });
 };
 
-export function generateUrl(type, course, year, curriculum, lectures) {
+export function generateCalendar(courseName, course, year, curriculum, lectures) {
 
     //Creating URL to get the calendar
     const id = generateId()
-    //unibocalendar.duckdns.org
-    var url = "webcal://unibocalendar.it/get_ical?id=" + id
 
     // Writing logs
-    var params = [id, new Date().getTime(), type, course, year, curriculum];
+    var params = [id, new Date().getTime(), courseName, course, year, curriculum];
     log_enrollment(params, lectures);
-    return url;
+    return id;
 }
 
 export async function checkEnrollment(uuid_value) {
@@ -112,7 +96,7 @@ export async function checkEnrollment(uuid_value) {
     }
 }
 
-export async function getICalendarEvents(id, ua, alert) {
+export async function getICalendarEvents(provider, id, ua, alert) {
     try {
         let isEnrolled = await checkEnrollment(id);
 
@@ -142,7 +126,7 @@ export async function getICalendarEvents(id, ua, alert) {
 
                 let lectureSet = new Set(lectures.map(x => x.lecture_id));
 
-                let calendar = await PROVIDER.getLessons(course, curriculum, year, lectureSet).catch((e) => {
+                let calendar = await provider.getLessons(course, curriculum, year, lectureSet).catch((e) => {
                     console.error(e);
                     return [];
                 });
