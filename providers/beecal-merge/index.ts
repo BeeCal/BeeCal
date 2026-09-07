@@ -54,11 +54,15 @@ export class MergeProvider implements TimetableProvider {
     async getInstitutionAreas(institutionId: string): Promise<Area[]> {
         const institution = this.#getInstitution(institutionId);
         const areas = await institution.getAreas();
-        return areas.map(x => { return { id: prependId(institutionId, x.id), name: x.name } });
+        return areas.map(x => { return { ...x, id: prependId(institutionId, x.id) } });
     }
 
-    getCourses(areaId: string): Promise<Course[]> {
-        throw new Error("Method not implemented.");
+    async getCourses(areaId: string): Promise<Course[]> {
+        const [institutionId, localAreaId] = extractParts(areaId);
+        const institution = this.#getInstitution(institutionId);
+        const courses = await institution.getCourses(localAreaId);
+        return courses.map(x => { return { ...x, id: prependId(institutionId, x.id) } });
+
     }
     getCurricula(courseId: string): Promise<Curriculum[]> {
         throw new Error("Method not implemented.");
