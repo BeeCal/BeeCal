@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { BeeCalClient, type University } from '@/client';
+import Calendar from '@/components/Calendar.vue';
 import CourseSelector from '@/components/CourseSelector.vue';
 import Header from '@/components/Header.vue';
 import TeachingsSelector from '@/components/TeachingsSelector.vue';
+import { computedAsync } from '@vueuse/core';
 import { ref } from 'vue';
 
 const client = new BeeCalClient();
@@ -13,6 +15,7 @@ const curriculum = ref<string>();
 const year = ref<number>();
 
 const teachings = ref<string[]>();
+const calId = computedAsync(async () => teachings.value === undefined ? undefined : client.getCalId(course.value!, curriculum.value!, year.value!, teachings.value!))
 
 </script>
 <template>
@@ -32,5 +35,6 @@ const teachings = ref<string[]>();
         <TeachingsSelector
             v-if="course !== undefined && curriculum !== undefined && year !== undefined && teachings === undefined"
             :course="course" :curriculum="curriculum" :year="year" @selected="x => teachings = x" />
+        <Calendar :id="calId" v-if="calId !== undefined" />
     </template>
 </template>

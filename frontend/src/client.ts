@@ -22,4 +22,13 @@ export class BeeCalClient {
         return fetch(`/api/teachings?course=${encodeURIComponent(course)}&curriculum=${encodeURIComponent(curriculum)}&year=${year}`)
             .then(x => x.json())
     }
+
+    getCalId(course: string, curriculum: string, year: number, teachings: string[]): Promise<string> {
+        const form = new URLSearchParams();
+        form.set("course", course);
+        form.set("curriculum", curriculum);
+        form.set("year", year.toString());
+        teachings.forEach(x => form.append("lectures", x));
+        return fetch("/api/calendar", { method: "POST", body: form }).then(x => x.text());
+    }
 }
