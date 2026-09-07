@@ -1,4 +1,5 @@
 import { Task } from "./scheduling";
+export { Schedule } from "./scheduling";
 
 export interface TimetableProvider {
     institutionName: string,

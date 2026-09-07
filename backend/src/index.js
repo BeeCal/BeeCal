@@ -5,6 +5,8 @@ import { router } from "./controller.js"
 import { __dirname } from "./utils.js"
 import { initDatabase, validateTokenMiddleware } from "./db.js"
 import { UniboProvider } from "beecal-unibo"
+import { CronJob } from "cron"
+import { runAndRegisterTasks } from "./scheduling.js"
 
 var app = express();
 
@@ -36,10 +38,8 @@ async function initializeApp() {
     try {
         await initDatabase();
         console.log("Database initialized successfully");
-        console.log("Running tasks...");
-        for (const task of app.locals.provider.getTasks()) {
-            await task.task();
-        }
+        console.log("Running and registering tasks...");
+        await runAndRegisterTasks(app.locals.provider.getTasks());
         console.log("All tasks have been run");
 
         // Start server
