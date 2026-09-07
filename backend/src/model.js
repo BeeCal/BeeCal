@@ -47,34 +47,6 @@ export async function log_enrollment(params, lectures) {
     }
 }
 
-export async function getTimetable(courseId, year, curriculum) {
-    return PROVIDER.getTeachings(courseId, curriculum, year)
-        .then(function (teachings) {
-            let lectures_form = '<button class="btn btn-secondary" id="select_or_deselect_all" onclick="return selectOrDeselectAll();">Deseleziona tutti</button>';
-            lectures_form += '<div class="container">';
-            lectures_form += '<form id="select_lectures" action="/get_calendar_url" method="post"><div class="row"><table>';
-            for (let i = 0; i < teachings.length; i++)
-                lectures_form += '<tr><th><input type="checkbox" class="checkbox" name="lectures" value="' + teachings[i].id + '" id="' + teachings[i].id + '" checked/></th><th><label for="' + teachings[i].id + '">' + teachings[i].name + '</label></th></tr>';
-            lectures_form += '</table></div><input type="hidden" name="timetable_url" value="' + courseId + '"/>';
-            lectures_form += '<input type="hidden" name="year" value="' + year + '"/>';
-            lectures_form += '<input type="hidden" name="curriculum" value="' + curriculum + '"/>';
-            lectures_form += '</div>';
-            lectures_form += '<input type="submit" class="btn btn-primary" value="Ottieni Calendario"/></form>';
-            /*
-            fs.writeFile("./labels.html", labels, function (err) {
-                if (err)
-                    return console.log(err);
-                console.log("labels saved!");
-            });
-            */
-            return lectures_form
-        })
-        .catch(function (err) {
-            console.log(err);
-            return '<h5 style="color: #dc3545;">Errore! L\'indirizzo non è valido...</h5>';
-        });
-};
-
 export function generateCalendar(courseName, course, year, curriculum, lectures) {
 
     //Creating URL to get the calendar

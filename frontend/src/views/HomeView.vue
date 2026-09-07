@@ -2,6 +2,7 @@
 import { BeeCalClient, type University } from '@/client';
 import CourseSelector from '@/components/CourseSelector.vue';
 import Header from '@/components/Header.vue';
+import TeachingsSelector from '@/components/TeachingsSelector.vue';
 import { ref } from 'vue';
 
 const client = new BeeCalClient();
@@ -10,6 +11,8 @@ const unis = ref<University[] | undefined>([{ id: "it.unibo", name: "Alma Mater 
 const course = ref<string>();
 const curriculum = ref<string>();
 const year = ref<number>();
+
+const teachings = ref<string[]>();
 
 </script>
 <template>
@@ -26,5 +29,8 @@ const year = ref<number>();
                 curriculum = selCurriculum;
                 year = selYear;
             }" />
+        <TeachingsSelector
+            v-if="course !== undefined && curriculum !== undefined && year !== undefined && teachings === undefined"
+            :course="course" :curriculum="curriculum" :year="year" @selected="x => teachings = x" />
     </template>
 </template>
