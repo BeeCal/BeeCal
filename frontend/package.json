@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@vueuse/core": "^14.4.0",
     "beecal-common": "file:../beecal-common",
     "vue": "^3.5.40",
     "vue-router": "^5.3.1"
