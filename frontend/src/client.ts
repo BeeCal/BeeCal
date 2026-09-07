@@ -1,5 +1,10 @@
 import type { Area, Course, Curriculum } from "beecal-common";
 
+export interface University {
+    name: string,
+    id: string,
+}
+
 export class BeeCalClient {
     getAreas(): Promise<Area[]> {
         return fetch("/api/areas").then(x => x.json());
