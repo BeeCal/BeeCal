@@ -4,6 +4,7 @@ import * as hbs from "express-handlebars"
 import { router } from "./controller.js"
 import { __dirname } from "./utils.js"
 import { initDatabase, validateTokenMiddleware } from "./db.js"
+import { UniboProvider } from "beecal-unibo";
 
 var app = express();
 
@@ -27,6 +28,7 @@ app.use("/", router);
 //set up handlebars
 app.engine("handlebars", hbs.engine());
 app.set("view engine", "handlebars");
+app.locals.provider = new UniboProvider();
 
 // TODO: launch provider jobs on startup
 
