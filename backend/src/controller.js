@@ -25,6 +25,11 @@ async function get_areas(req, res) {
     res.json(areas);
 }
 
+async function get_courses(req, res) {
+    const courses = await req.app.locals.provider.getCourses(req.query.area);
+    res.json(courses);
+}
+
 async function get_calendar_url(req, res, next) {
     const timetable_url = req.body.timetable_url;
     const type = "unibo"; // FIXME change with provider ID
@@ -100,6 +105,7 @@ async function get_stats_summary(req, res, next) {
 
 const public_api_router = Router();
 public_api_router.get("/areas", get_areas);
+public_api_router.get("/courses", get_courses);
 
 export const router = (() => {
     const r = Router();
