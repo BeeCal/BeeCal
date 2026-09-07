@@ -41,14 +41,14 @@ client.getAreas().then(x => areas.value = x);
         <div class="mt-3" id="box">
             <form id="form_calendar" class="form-group" action="/course" method="post" onchange="checkFormValidity();">
                 <div class="mb-3">
-                    <select v-if="areas !== undefined" v-model="area" class="form-select" name="areas"
-                        @change="courses = undefined">
+                    <Loading component="le scuole" v-if="areas === undefined" />
+                    <select v-else v-model="area" class="form-select" name="areas" @change="courses = undefined">
                         <option value="">--- Seleziona Scuola ---</option>
                         <option v-for="area in areas" :value="area.id">{{ area.name }}</option>
                     </select>
                 </div>
                 <div id="courses-container" class="mb-3" v-if="area !== ''">
-                    <Loading component="i corsi" v-if="courses == undefined" />
+                    <Loading component="i corsi" v-if="courses === undefined" />
                     <select v-else v-model="course" class="form-select" name="courses">
                         <option v-for="course in courses" :value="course.id">
                             {{ course.type }} - {{ course.name }}
