@@ -20,22 +20,29 @@ function error500(err, req, res, next) {
     res.render("500");
 }
 
-async function home_page(req, res, next) {
-    let areas = await model.getAreas();
-    res.render("home", { "page": "home", "areas": areas.map(x => x.name) });
+async function get_areas(req, res) {
+    const areas = await req.app.locals.provider.getAreas();
+    res.json(areas);
 }
 
-async function course_page(req, res, next) {
-    const unibo_url = req.body.courses;
-    const year = req.body.years;
-    const curriculum = req.body.curricula;
-    let list = await model.getTimetable(unibo_url, year, curriculum);
-    res.render("course", { "page": "course", "list": list });
+async function get_courses(req, res) {
+    const courses = await req.app.locals.provider.getCourses(req.query.area);
+    res.json(courses);
 }
 
-async function get_calendar_url(req, res, next) {
-    const timetable_url = req.body.timetable_url;
-    const type = "unibo"; // FIXME change with provider ID
+async function get_curricula(req, res) {
+    const curricula = await req.app.locals.provider.getCurricula(req.query.course);
+    res.json(curricula);
+}
+
+async function get_teachings(req, res) {
+    const teachings = await req.app.locals.provider.getTeachings(req.query.course, req.query.curriculum, parseInt(req.query.year));
+    res.json(teachings);
+}
+
+async function create_calendar(req, res, next) {
+    const course = req.body.course;
+    const statsLabel = "unibo"; // FIXME change with uni and course name
     const year = req.body.year;
     const curriculum = req.body.curriculum;
     var lectures = req.body.lectures;
@@ -44,30 +51,16 @@ async function get_calendar_url(req, res, next) {
     } else if (typeof lectures === "string") {
         lectures = [lectures];
     }
-    let url = model.generateUrl(type, timetable_url, year, curriculum, lectures);
-    res.render("link", { "page": "link", "url": url });
+    let id = model.generateCalendar(statsLabel, course, year, curriculum, lectures);
+    res.send(id);
 }
 
 async function get_ical(req, res, next) {
     const id = req.query.id;
     let alert = req.query.alert === undefined ? null : parseInt(req.query.alert);
-    let unibo_cal = await model.getICalendarEvents(id, req.get("User-Agent"), alert);
+    let unibo_cal = await model.getICalendarEvents(req.app.locals.provider, id, req.get("User-Agent"), alert);
     res.type("text/calendar");
     res.send(unibo_cal);
-}
-
-async function get_courses_given_area(req, res, next) {
-    var area = req.query.area;
-    let courses = await model.getCoursesGivenArea(area);
-    res.type("application/json");
-    res.send(courses);
-}
-
-async function get_curricula_given_course(req, res, next) {
-    var url = req.body.url;
-    let curricula = await model.getCurriculaGivenCourseId(url);
-    res.type("application/json");
-    res.send(JSON.stringify(curricula));
 }
 
 async function stats_page(req, res, next) {
@@ -120,6 +113,13 @@ async function get_stats_summary(req, res, next) {
     }
 }
 
+const public_api_router = Router();
+public_api_router.get("/areas", get_areas);
+public_api_router.get("/courses", get_courses);
+public_api_router.get("/curricula", get_curricula);
+public_api_router.get("/teachings", get_teachings);
+public_api_router.post("/calendar", create_calendar);
+
 export const router = (() => {
     const r = Router();
 
@@ -142,16 +142,12 @@ export const router = (() => {
         res.status(200).end();
     });
 
-    r.get("/", home_page);
-    r.post("/course", course_page);
-    r.post("/get_calendar_url", get_calendar_url);
     r.get("/get_ical", get_ical);
-    r.get("/get_courses_given_area", get_courses_given_area);
-    r.post("/get_curricula_given_course", get_curricula_given_course);
     r.get("/stats", stats_page);
     r.get("/api/validate-token", validateTokenEndpoint);
     r.get("/api/stats/summary", validateTokenMiddleware, get_stats_summary);
     r.get("/bonk", bonk);
+    r.use("/api", public_api_router);
     r.use(error404); // 404 catch-all handler (middleware)
     r.use(error500); // 500 error handler (middleware)
     return r;
