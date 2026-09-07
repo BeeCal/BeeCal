@@ -90,7 +90,8 @@ client.getAreas().then(x => areas.value = x);
             </div>
             <div>
                 <button class="btn btn-primary d-inline"
-                    :disabled="course === undefined || year === undefined || curriculum == ''">Avanti</button>
+                    :disabled="course === undefined || year === undefined || curriculum == ''"
+                    @click="emit('select', courseId, curriculum, year!)">Avanti</button>
             </div>
             <div id="low-connection">Connessione debole...</div>
         </form>
