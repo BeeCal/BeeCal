@@ -1,6 +1,15 @@
 <script setup lang="ts">
+import { BeeCalClient } from '@/client';
 import Header from '@/components/Header.vue';
+import type { Area } from 'beecal-common';
+import { ref } from 'vue';
 
+const client = new BeeCalClient();
+
+const areas = ref<Area[] | undefined>();
+const area = ref("");
+
+client.getAreas().then(x => areas.value = x);
 </script>
 <template>
     <div class="mt-5">
@@ -11,11 +20,9 @@ import Header from '@/components/Header.vue';
     <div class="mt-3" id="box">
         <form id="form_calendar" class="form-group" action="/course" method="post" onchange="checkFormValidity();">
             <div class="mb-3">
-                <select id="areas" class="form-select" name="areas" onchange="getCoursesGivenArea();">
+                <select v-model="area" class="form-select" name="areas" onchange="getCoursesGivenArea();">
                     <option value="">--- Seleziona Scuola ---</option>
-                    <!--{{ #each areas }}
-                    <option value="{{this}}">{{ this }}</option>
-                    {{/each}}-->
+                    <option v-for="area in areas" :value="area.id">{{ area.name }}</option>
                 </select>
             </div>
             <div id="courses-container" class="mb-3">
