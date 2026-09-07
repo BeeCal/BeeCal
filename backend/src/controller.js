@@ -35,6 +35,11 @@ async function get_curricula(req, res) {
     res.json(curricula);
 }
 
+async function get_teachings(req, res) {
+    const teachings = await req.app.locals.provider.getTeachings(req.query.course, req.query.curriculum, parseInt(req.query.year));
+    res.json(teachings);
+}
+
 async function get_calendar_url(req, res, next) {
     const timetable_url = req.body.timetable_url;
     const type = "unibo"; // FIXME change with provider ID
@@ -112,6 +117,7 @@ const public_api_router = Router();
 public_api_router.get("/areas", get_areas);
 public_api_router.get("/courses", get_courses);
 public_api_router.get("/curricula", get_curricula);
+public_api_router.get("/teachings", get_teachings);
 
 export const router = (() => {
     const r = Router();
