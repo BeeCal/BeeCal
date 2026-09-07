@@ -1,6 +1,24 @@
 import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common";
-import { ESCourse } from "./types";
+import { ESCourse, ESTimeTableEntry } from "./types";
 import { JSParser } from "./jsparser";
+
+const ONE_DAY = 86400000;
+
+function timeOfDayToSeconds(time: string, separator: string = ":"): number {
+    let multiplier = 3600;
+    let seconds = 0;
+
+    for (const part of time.split(separator)) {
+        const value = Number.parseInt(part, 10);
+
+        if (!Number.isNaN(value)) {
+            seconds += value * multiplier;
+            multiplier /= 60;
+        }
+    }
+
+    return seconds;
+}
 
 export class EasyStaffProvider implements TimetableProvider {
     comboCall: string;
@@ -100,7 +118,37 @@ export class EasyStaffProvider implements TimetableProvider {
         }
         return yearData.elenco_insegnamenti.map(x => { return { id: x.valore, name: x.label } });
     }
-    getLessons(courseId: string, curriculum: string, year: number, teachingIDsFilter?: Set<string>): Promise<Lesson[]> {
-        throw new Error("Method not implemented.");
+
+    async getLessons(courseId: string, curriculum: string, year: number, teachingIDsFilter?: Set<string>): Promise<Lesson[]> {
+        let timetable: Lesson[] = [];
+        const dateFormatter = new Intl.DateTimeFormat("it", { day: "2-digit", month: "2-digit", year: "numeric" });
+        const date = new Date();
+        // Get monday
+        date.setDate(date.getDate() - date.getDay() + 1);
+        let lastWeekLength = 0;
+        while ((timetable.length == 0 || lastWeekLength > 0) && (date.getTime() - new Date().getTime()) < ONE_DAY * 120) {
+            const response: { celle: ESTimeTableEntry[] } = await fetch(`${this.baseURL}/${this.gridCall}`, {
+                method: "POST",
+                body: `view=easycourse&form-type=corso&include=corso&anno=${this.academicYear}&corso=${courseId}&visualizzazione_orario=cal&anno2[]=${curriculum}|${year}&date=${dateFormatter.format(date).replaceAll("/", "-")}`,
+                headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" }
+            }).then(x => x.json());
+            date.setDate(date.getDate() + 7);
+            lastWeekLength = response.celle.length;
+            timetable = timetable.concat(response.celle
+                .filter(x => teachingIDsFilter === undefined ? true : teachingIDsFilter.has(x.codice_insegnamento))
+                .map(x => {
+                    return {
+                        title: x.nome_insegnamento,
+                        start: new Date((x.timestamp + timeOfDayToSeconds(x.ora_inizio)) * 1000),
+                        end: new Date((x.timestamp + timeOfDayToSeconds(x.ora_fine)) * 1000),
+                        location: x.aula,
+                        teacher: {
+                            name: x.docente,
+                            email: x.mail_docente || "",
+                        },
+                    }
+                }))
+        }
+        return timetable;
     }
 }

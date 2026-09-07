@@ -16,3 +16,14 @@ export interface ESTeaching {
     label: string,
     valore: string,
 }
+
+export interface ESTimeTableEntry {
+    codice_insegnamento: string,
+    nome_insegnamento: string,
+    docente: string,
+    mail_docente?: string,
+    timestamp: number,
+    aula: string,
+    ora_inizio: string,
+    ora_fine: string,
+}
