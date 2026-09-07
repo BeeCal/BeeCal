@@ -4,6 +4,7 @@ import os from "node:os";
 import fs_stream from "node:fs";
 import csv from "csv-parser";
 import * as cheerio from "cheerio";
+import { Schedule, Task } from "beecal-common/dist/scheduling";
 
 const OPENDATA_DIR = `${os.tmpdir()}/beecal-unibo`;
 const OPENDATA_FILE = `${OPENDATA_DIR}/corsi.csv`;
@@ -195,5 +196,15 @@ export class UniboProvider implements TimetableProvider {
             console.error(`The calendar at ${link} was empty!`);
         }
         return calendar
+    }
+
+    getTasks(): Task[] {
+        return [{
+            schedule: Schedule.Weekly,
+            task: () => {
+                console.log("Starting Unibo opendata update");
+                return this.#fetchOpenData();
+            },
+        }]
     }
 }
