@@ -3,7 +3,7 @@ import { BeeCalClient } from '@/client';
 import Header from '@/components/Header.vue';
 import Loading from '@/components/Loading.vue';
 import { computedAsync } from '@vueuse/core';
-import { type Course, type Area } from 'beecal-common';
+import { type Course, type Area, type Curriculum } from 'beecal-common';
 import { computed, ref } from 'vue';
 
 const client = new BeeCalClient();
@@ -32,6 +32,14 @@ const years = computed(() => {
         }
     }
     return res;
+});
+
+const curricula = computedAsync<[string, Curriculum[]] | undefined>(async () => {
+    if (course.value === undefined) {
+        return undefined;
+    }
+    const c = await client.getCurricula(course.value.id);
+    return [course.value.id, c];
 });
 
 client.getAreas().then(x => areas.value = x);
@@ -70,10 +78,11 @@ client.getAreas().then(x => areas.value = x);
                         <option v-for="y in years" :value="y">{{ y }}</option>
                     </select>
                 </div>
-                <div id="curricula-container" class="mb-3">
-                    <select id="curricula" class="form-select" name="curricula">
+                <div id="curricula-container" class="mb-3" v-if="courseId != ''">
+                    <Loading component="i curriculum" v-if="curricula === undefined || curricula[0] != courseId" />
+                    <select v-else class="form-select" name="curricula">
+                        <option v-for="curriculum in curricula[1]" :value="curriculum.id">{{ curriculum.name }}</option>
                     </select>
-                    <div class="spinner-border" id="curricula-loading" role="status"></div>
                 </div>
                 <div>
                     <input type="submit" id="submit-form-button" class="btn btn-primary d-inline" value="Avanti"
