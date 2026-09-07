@@ -1,10 +1,10 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import Header from '@/components/Header.vue';
+
+</script>
 <template>
     <div class="mt-5">
-        <h1><img src="/calendar.png" alt=""
-                style="width: 40px; height: 40px; margin-right: 10px; margin-top: 3px; vertical-align: top;">
-            BeeCal
-        </h1>
+        <Header />
         <h6>Vuoi inserire i tuoi appuntamenti universitari nel tuo calendario (iCloud, Google, ecc)?<br>Riempi i campi
             qui sotto per cominciare</h6>
     </div>
