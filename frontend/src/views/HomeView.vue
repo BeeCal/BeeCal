@@ -22,7 +22,17 @@ const courses = computedAsync<Course[] | undefined>(async () => {
 
     return c;
 });
-const course = ref("");
+const courseId = ref("");
+const course = computed<Course | undefined>(() => (courses.value || []).find(x => x.id == courseId.value));
+const years = computed(() => {
+    const res: number[] = [];
+    if (course.value !== undefined) {
+        for (let i = 0; i < course.value?.duration; i += 1) {
+            res.push(i + 1);
+        }
+    }
+    return res;
+});
 
 client.getAreas().then(x => areas.value = x);
 </script>
@@ -49,14 +59,15 @@ client.getAreas().then(x => areas.value = x);
                 </div>
                 <div id="courses-container" class="mb-3" v-if="area !== ''">
                     <Loading component="i corsi" v-if="courses === undefined" />
-                    <select v-else v-model="course" class="form-select" name="courses">
+                    <select v-else v-model="courseId" class="form-select" name="courses">
                         <option v-for="course in courses" :value="course.id">
                             {{ course.type }} - {{ course.name }}
                         </option>
                     </select>
                 </div>
-                <div class="mb-3">
+                <div v-if="years.length > 0" class="mb-3">
                     <select id="years" class="form-select" name="years">
+                        <option v-for="y in years" :value="y">{{ y }}</option>
                     </select>
                 </div>
                 <div id="curricula-container" class="mb-3">
