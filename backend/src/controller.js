@@ -22,7 +22,7 @@ function error500(err, req, res, next) {
 
 async function home_page(req, res, next) {
     let areas = await model.getAreas();
-    res.render("home", { "page": "home", "areas": areas });
+    res.render("home", { "page": "home", "areas": areas.map(x => x.name) });
 }
 
 async function course_page(req, res, next) {
@@ -35,17 +35,16 @@ async function course_page(req, res, next) {
 
 async function get_calendar_url(req, res, next) {
     const timetable_url = req.body.timetable_url;
-    const type = timetable_url.split("/")[3];
-    const course = timetable_url.split("/")[4];
+    const type = "unibo"; // FIXME change with provider ID
     const year = req.body.year;
     const curriculum = req.body.curriculum;
     var lectures = req.body.lectures;
-    if (typeof lectures === undefined || lectures === "") {
+    if (typeof lectures === "undefined" || lectures === "") {
         lectures = [];
     } else if (typeof lectures === "string") {
         lectures = [lectures];
     }
-    let url = model.generateUrl(type, course, year, curriculum, lectures);
+    let url = model.generateUrl(type, timetable_url, year, curriculum, lectures);
     res.render("link", { "page": "link", "url": url });
 }
 
@@ -66,13 +65,13 @@ async function get_courses_given_area(req, res, next) {
 
 async function get_curricula_given_course(req, res, next) {
     var url = req.body.url;
-    let curricula = await model.getCurriculaGivenCourseUrl(url);
+    let curricula = await model.getCurriculaGivenCourseId(url);
     res.type("application/json");
     res.send(JSON.stringify(curricula));
 }
 
 async function stats_page(req, res, next) {
-    res.render("stats", { 
+    res.render("stats", {
         "page": "stats",
         "timestamp": Date.now()
     });
@@ -123,7 +122,7 @@ async function get_stats_summary(req, res, next) {
 
 export const router = (() => {
     const r = Router();
-    
+
     // Handle CORS preflight requests
     r.options("/api/stats/summary", (req, res) => {
         res.set({
@@ -133,7 +132,7 @@ export const router = (() => {
         });
         res.status(200).end();
     });
-    
+
     r.options("/api/validate-token", (req, res) => {
         res.set({
             'Access-Control-Allow-Origin': '*',
@@ -142,7 +141,7 @@ export const router = (() => {
         });
         res.status(200).end();
     });
-    
+
     r.get("/", home_page);
     r.post("/course", course_page);
     r.post("/get_calendar_url", get_calendar_url);
