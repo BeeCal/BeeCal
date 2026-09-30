@@ -1,4 +1,5 @@
 import { Schedule } from "beecal-common";
+import { CronJob } from "cron";
 
 /**
  * 
@@ -19,7 +20,7 @@ export async function runAndRegisterTasks(tasks) {
 }
 
 function random(max = 60) {
-    return (Math.random() * max).toFixed(0);
+    return ((Math.random() * (max - 1)) + 1).toFixed(0);
 }
 /**
  * 
