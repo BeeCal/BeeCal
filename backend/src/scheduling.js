@@ -39,6 +39,6 @@ function scheduleToCron(schedule) {
             return `0 ${random()} 2 * * 0`;
         case Schedule.Monthly:
             // Run at a random minute on a random day of the month, 02:00 to distribute load
-            return `0 ${random()} 2 ${random(28)} * 0`;
+            return `0 ${random()} 2 ${random(28)} * *`;
     }
 }
