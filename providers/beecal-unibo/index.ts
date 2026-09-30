@@ -1,4 +1,4 @@
-import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common/dist";
+import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common";
 import fs from "node:fs/promises";
 import os from "node:os";
 import fs_stream from "node:fs";
@@ -174,7 +174,7 @@ export class UniboProvider implements TimetableProvider {
             if (l.aule && Array.isArray(l.aule) && l.aule.length > 0) {
                 location = l.aule
                     .map((x: { des_risorsa: string; des_indirizzo: string; }) => x.des_risorsa + ", " + x.des_indirizzo)
-                    .join(", ");
+                    .join("; ");
             }
             var url = undefined;
             if (!(l.teams === undefined) && !(l.teams === null)) {
