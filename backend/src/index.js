@@ -36,7 +36,7 @@ app.locals.provider = new MergeProvider([
     { id: "it.unibo", provider: new UniboProvider() },
     {
         id: "it.unimore",
-        provider: new EasyStaffProvider("Università di Modena e Reggio Emilia", "it", "https://www.aule.unimore.it/PortaleStudentiUnimore", "combo.php", "grud_call.php")
+        provider: new EasyStaffProvider("Università di Modena e Reggio Emilia", "it", "https://www.aule.unimore.it/PortaleStudentiUnimore", "combo.php", "grid_call.php")
     },
 ]);
 
