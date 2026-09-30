@@ -1,4 +1,5 @@
 import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common";
+import { Task } from "beecal-common/dist/scheduling";
 
 const SEPARATOR = '$';
 
@@ -83,5 +84,9 @@ export class MergeProvider implements TimetableProvider {
         const [institutionId, localCourseId] = extractParts(courseId);
         const institution = this.#getInstitution(institutionId);
         return institution.getLessons(localCourseId, curriculum, year, teachingIDsFilter);
+    }
+
+    getTasks(): Task[] {
+        return Array.from(this.institutions.values()).flatMap(x => x.getTasks());
     }
 }
