@@ -1,4 +1,4 @@
-import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common/dist";
+import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common";
 
 const SEPARATOR = '$';
 
@@ -65,7 +65,6 @@ export class MergeProvider implements TimetableProvider {
         const institution = this.#getInstitution(institutionId);
         const courses = await institution.getCourses(localAreaId);
         return courses.map(x => { return { ...x, id: prependId(institutionId, x.id) } });
-
     }
 
     getCurricula(courseId: string): Promise<Curriculum[]> {
