@@ -20,8 +20,13 @@ function error500(err, req, res, next) {
     res.render("500");
 }
 
+async function get_institutions(req, res) {
+    const institutions = await req.app.locals.provider.getInstitutions();
+    res.json(institutions);
+}
+
 async function get_areas(req, res) {
-    const areas = await req.app.locals.provider.getAreas();
+    const areas = await req.app.locals.provider.getInstitutionAreas(req.query.institution);
     res.json(areas);
 }
 
@@ -114,6 +119,7 @@ async function get_stats_summary(req, res, next) {
 }
 
 const public_api_router = Router();
+public_api_router.get("/institutions", get_institutions);
 public_api_router.get("/areas", get_areas);
 public_api_router.get("/courses", get_courses);
 public_api_router.get("/curricula", get_curricula);

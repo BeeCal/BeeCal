@@ -4,6 +4,8 @@ import * as hbs from "express-handlebars"
 import { router } from "./controller.js"
 import { __dirname } from "./utils.js"
 import { initDatabase, validateTokenMiddleware } from "./db.js"
+import { EasyStaffProvider } from "beecal-easystaff"
+import { MergeProvider } from "beecal-merge"
 import { UniboProvider } from "beecal-unibo"
 import { runAndRegisterTasks } from "./scheduling.js"
 
@@ -29,9 +31,14 @@ app.use("/", router);
 //set up handlebars
 app.engine("handlebars", hbs.engine());
 app.set("view engine", "handlebars");
-app.locals.provider = new UniboProvider();
 
-app.locals.provider = new UniboProvider();
+app.locals.provider = new MergeProvider([
+    { id: "it.unibo", provider: new UniboProvider() },
+    {
+        id: "it.unimore",
+        provider: new EasyStaffProvider("Università di Modena e Reggio Emilia", "it", "https://www.aule.unimore.it/PortaleStudentiUnimore", "combo.php", "grud_call.php")
+    },
+]);
 
 // Initialize database tables and indexes
 async function initializeApp() {
