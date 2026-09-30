@@ -50,7 +50,7 @@ export class EasyStaffProvider implements TimetableProvider {
     }
 
     async #updateCoursesAndAreas() {
-        const response = await fetch(`${this.baseURL}/${this.comboCall}?aa=${encodeURIComponent(this.academicYear)}&page=corsi&sw=ec_`)
+        const response = await fetch(`${this.baseURL}/${this.comboCall}?aa=${encodeURIComponent(this.academicYear!)}&page=corsi&sw=ec_`)
             .then(x => x.text())
             .then(x => new JSParser(x));
 
