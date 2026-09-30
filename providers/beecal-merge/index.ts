@@ -8,6 +8,9 @@ function prependId(pre: string, post: string): string {
 
 function extractParts(id: string): [string, string] {
     const splitPosition = id.indexOf(SEPARATOR);
+    if (splitPosition === -1) {
+        throw new Error("Malformed ID: " + id);
+    }
     return [id.slice(0, splitPosition), id.slice(splitPosition + 1)];
 }
 
