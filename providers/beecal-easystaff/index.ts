@@ -44,7 +44,7 @@ export class EasyStaffProvider implements TimetableProvider {
             .then(x => x.text())
             .then(x => new JSParser(x));
         const values: { [index: string]: { valore: string } } = response.get("anni_accademici_ec");
-        const allKeys = Object.keys(values).map(x => parseInt(x)).sort();
+        const allKeys = Object.keys(values).map(x => parseInt(x)).sort((a, b) => a - b);
         const mostRecent = allKeys[allKeys.length - 1];
         this.academicYear = values[`${mostRecent}`].valore;
     }
