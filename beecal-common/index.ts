@@ -1,6 +1,6 @@
-import type { Task } from "./scheduling";
+import type { Task } from "./scheduling.js";
 
-export { Schedule, type Task } from "./scheduling";
+export { Schedule, type Task } from "./scheduling.js";
 
 export interface TimetableProvider {
     institutionName: string,
