@@ -5,7 +5,6 @@ import { router } from "./controller.js"
 import { __dirname } from "./utils.js"
 import { initDatabase, validateTokenMiddleware } from "./db.js"
 import { UniboProvider } from "beecal-unibo"
-import { CronJob } from "cron"
 import { runAndRegisterTasks } from "./scheduling.js"
 
 var app = express();
