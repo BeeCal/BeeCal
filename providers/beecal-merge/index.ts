@@ -8,7 +8,7 @@ function prependId(pre: string, post: string): string {
 
 function extractParts(id: string): [string, string] {
     const splitPosition = id.indexOf(SEPARATOR);
-    return [id.slice(0, splitPosition - 1), id.slice(splitPosition + 1)];
+    return [id.slice(0, splitPosition), id.slice(splitPosition + 1)];
 }
 
 export interface Institution {
