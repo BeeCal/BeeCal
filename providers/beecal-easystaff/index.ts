@@ -125,15 +125,19 @@ export class EasyStaffProvider implements TimetableProvider {
         const date = new Date();
         // Get monday
         date.setDate(date.getDate() - date.getDay() + 1);
-        let lastWeekLength = 0;
-        while ((timetable.length == 0 || lastWeekLength > 0) && (date.getTime() - new Date().getTime()) < ONE_DAY * 120) {
+        let emptyWeeks = 0;
+        while ((timetable.length == 0 || emptyWeeks <= 3) && (date.getTime() - new Date().getTime()) < ONE_DAY * 120) {
             const response: { celle: ESTimeTableEntry[] } = await fetch(`${this.baseURL}/${this.gridCall}`, {
                 method: "POST",
                 body: `view=easycourse&form-type=corso&include=corso&anno=${this.academicYear}&corso=${courseId}&visualizzazione_orario=cal&anno2[]=${curriculum}|${year}&date=${dateFormatter.format(date).replaceAll("/", "-")}`,
                 headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" }
             }).then(x => x.json());
             date.setDate(date.getDate() + 7);
-            lastWeekLength = response.celle.length;
+            if (response.celle.length == 0) {
+                emptyWeeks += 1;
+            } else {
+                emptyWeeks = 0;
+            }
             timetable = timetable.concat(response.celle
                 .filter(x => teachingIDsFilter === undefined ? true : teachingIDsFilter.has(x.codice_insegnamento))
                 .map(x => {
