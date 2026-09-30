@@ -124,7 +124,7 @@ export class EasyStaffProvider implements TimetableProvider {
         const dateFormatter = new Intl.DateTimeFormat("it", { day: "2-digit", month: "2-digit", year: "numeric" });
         const date = new Date();
         // Get monday
-        date.setDate(date.getDate() - date.getDay() + 1);
+        date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
         let emptyWeeks = 0;
         while ((timetable.length == 0 || emptyWeeks <= 3) && (date.getTime() - new Date().getTime()) < ONE_DAY * 120) {
             const response: { celle: ESTimeTableEntry[] } = await fetch(`${this.baseURL}/${this.gridCall}`, {
