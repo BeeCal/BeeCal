@@ -21,7 +21,7 @@ export async function runAndRegisterTasks(tasks) {
 }
 
 function random(max = 60) {
-    return ((Math.random() * (max - 1)) + 1).toFixed(0);
+    return (Math.floor(Math.random() * (max - 1)) + 1).toFixed(0);
 }
 /**
  * 
