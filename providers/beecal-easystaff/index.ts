@@ -1,6 +1,7 @@
 import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common";
 import { ESCourse, ESTimeTableEntry } from "./types";
 import { JSParser } from "./jsparser";
+import { Schedule, Task } from "beecal-common/scheduling";
 
 const ONE_DAY = 86400000;
 
@@ -163,5 +164,23 @@ export class EasyStaffProvider implements TimetableProvider {
                 }))
         }
         return timetable;
+    }
+
+    getTasks(): Task[] {
+        return [
+            {
+                schedule: Schedule.Monthly,
+                task: () => {
+                    console.log(`Updating ${this.institutionName}'s Academic Year`);
+                    return this.#setAcademicYear()
+                }
+            }, {
+                schedule: Schedule.Weekly,
+                task: () => {
+                    console.log(`Updating ${this.institutionName}'s courses and areas`);
+                    return this.#updateCoursesAndAreas()
+                }
+            }
+        ]
     }
 }
