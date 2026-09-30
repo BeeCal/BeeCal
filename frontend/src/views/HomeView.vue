@@ -9,7 +9,7 @@ import { computedAsync } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
 const client = new BeeCalClient();
-const unis = ref<University[] | undefined>([{ id: "it.unibo", name: "Alma Mater Studiorum Università di Bologna" }]);
+const unis = ref<University[] | undefined>();
 
 const course = ref<string>();
 const curriculum = ref<string>();
@@ -21,6 +21,7 @@ const calId = computedAsync(async () => teachings.value === undefined ? undefine
 const coursePickerShown = computed(() => course.value === undefined || curriculum.value === undefined || year.value === undefined);
 const teachingsPickerShown = computed(() => !coursePickerShown.value && teachings.value === undefined);
 
+client.getInstitutions().then(x => unis.value = x);
 </script>
 <template>
     <div class="mt-5 mb-3">

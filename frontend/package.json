@@ -13,6 +13,7 @@
   "dependencies": {
     "@vueuse/core": "^14.4.0",
     "beecal-common": "file:../beecal-common",
+    "beecal-merge": "file:../providers/beecal-merge",
     "vue": "^3.5.40",
     "vue-router": "^5.3.1"
   },

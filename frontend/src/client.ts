@@ -1,4 +1,5 @@
 import type { Area, Course, Curriculum, Teaching } from "beecal-common";
+import type { Institution } from "beecal-merge";
 
 export interface University {
     name: string,
@@ -6,8 +7,12 @@ export interface University {
 }
 
 export class BeeCalClient {
-    getAreas(): Promise<Area[]> {
-        return fetch("/api/areas").then(x => x.json());
+    getInstitutions(): Promise<Institution[]> {
+        return fetch("/api/institutions").then(x => x.json());
+    }
+
+    getAreas(institutionId: string): Promise<Area[]> {
+        return fetch("/api/areas?institution=" + encodeURIComponent(institutionId)).then(x => x.json());
     }
 
     getCourses(areaId: string): Promise<Course[]> {

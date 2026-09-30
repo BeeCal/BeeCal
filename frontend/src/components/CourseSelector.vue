@@ -12,11 +12,19 @@ const emit = defineEmits<{
 
 const client = new BeeCalClient();
 
-const areas = ref<Area[] | undefined>();
+const uni = ref<string>();
+
+const areas = computedAsync(async () => {
+    if (uni.value === undefined || uni.value === "") {
+        return undefined;
+    } else {
+        return await client.getAreas(uni.value);
+    }
+});
 const area = ref("");
 
 const courses = computedAsync<Course[] | undefined>(async () => {
-    if (areas === undefined) {
+    if (areas.value === undefined || area.value === '') {
         return undefined;
     }
     const c = await client.getCourses(area.value);
@@ -50,7 +58,6 @@ const curricula = computedAsync<[string, Curriculum[]] | undefined>(async () => 
 });
 const curriculum = ref("");
 
-client.getAreas().then(x => areas.value = x);
 </script>
 <template>
     <div>
@@ -61,6 +68,12 @@ client.getAreas().then(x => areas.value = x);
     <div class="mt-3" id="box">
         <form id="form_calendar" class="form-group">
             <div class="mb-3">
+                <select v-model="uni" class="form-select" name="unis" @change="areas = undefined">
+                    <option value="">--- Seleziona Università ---</option>
+                    <option v-for="u in universities" :value="u.id">{{ u.name }}</option>
+                </select>
+            </div>
+            <div class="mb-3" v-if="uni !== undefined">
                 <Loading component="le scuole" v-if="areas === undefined" />
                 <select v-else v-model="area" class="form-select" name="areas" @change="courses = undefined">
                     <option value="">--- Seleziona Scuola ---</option>
