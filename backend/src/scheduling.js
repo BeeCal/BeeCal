@@ -10,8 +10,9 @@ export async function runAndRegisterTasks(tasks) {
         await task.task();
         new CronJob(
             scheduleToCron(task.schedule),
-            function () {
-                task.task();
+            async function () {
+                try { await task.task(); }
+                catch (e) { console.error("Scheduled task failed", e); }
             }, // onTick
             null, // onComplete
             true, // start
