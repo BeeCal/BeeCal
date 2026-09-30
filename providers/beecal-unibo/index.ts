@@ -1,9 +1,10 @@
-import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common/dist";
+import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common";
 import fs from "node:fs/promises";
 import os from "node:os";
 import fs_stream from "node:fs";
 import csv from "csv-parser";
 import * as cheerio from "cheerio";
+import { Schedule, Task } from "beecal-common/scheduling";
 
 const OPENDATA_DIR = `${os.tmpdir()}/beecal-unibo`;
 const OPENDATA_FILE = `${OPENDATA_DIR}/corsi.csv`;
@@ -172,7 +173,9 @@ export class UniboProvider implements TimetableProvider {
             const end = new Date(l.end);
             var location = undefined;
             if (l.aule && Array.isArray(l.aule) && l.aule.length > 0) {
-                location = l.aule[0].des_risorsa + ", " + l.aule[0].des_indirizzo;
+                location = l.aule
+                    .map((x: { des_risorsa: string; des_indirizzo: string; }) => x.des_risorsa + ", " + x.des_indirizzo)
+                    .join("; ");
             }
             var url = undefined;
             if (!(l.teams === undefined) && !(l.teams === null)) {
@@ -195,5 +198,15 @@ export class UniboProvider implements TimetableProvider {
             console.error(`The calendar at ${link} was empty!`);
         }
         return calendar
+    }
+
+    getTasks(): Task[] {
+        return [{
+            schedule: Schedule.Weekly,
+            task: () => {
+                console.log("Starting Unibo opendata update");
+                return this.#fetchOpenData();
+            },
+        }]
     }
 }

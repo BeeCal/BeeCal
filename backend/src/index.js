@@ -4,7 +4,8 @@ import * as hbs from "express-handlebars"
 import { router } from "./controller.js"
 import { __dirname } from "./utils.js"
 import { initDatabase, validateTokenMiddleware } from "./db.js"
-import { UniboProvider } from "beecal-unibo";
+import { UniboProvider } from "beecal-unibo"
+import { runAndRegisterTasks } from "./scheduling.js"
 
 var app = express();
 
@@ -30,13 +31,16 @@ app.engine("handlebars", hbs.engine());
 app.set("view engine", "handlebars");
 app.locals.provider = new UniboProvider();
 
-// TODO: launch provider jobs on startup
+app.locals.provider = new UniboProvider();
 
 // Initialize database tables and indexes
 async function initializeApp() {
     try {
         await initDatabase();
         console.log("Database initialized successfully");
+        console.log("Running and registering tasks...");
+        await runAndRegisterTasks(app.locals.provider.getTasks());
+        console.log("All tasks have been run");
 
         // Start server
         app.listen(app.get("port"), app.get("bind-addr"), () => {

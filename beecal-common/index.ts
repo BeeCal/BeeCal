@@ -1,3 +1,7 @@
+import type { Task } from "./scheduling";
+
+export { Schedule, type Task } from "./scheduling";
+
 export interface TimetableProvider {
     institutionName: string,
     country: string,
@@ -8,6 +12,13 @@ export interface TimetableProvider {
     getCurricula(courseId: string): Promise<Curriculum[]>,
     getTeachings(courseId: string, curriculum: string, year: number): Promise<Teaching[]>,
     getLessons(courseId: string, curriculum: string, year: number, teachingIDsFilter?: Set<string>): Promise<Lesson[]>,
+
+    /**
+     * Guarantees:
+     * - every task will be run before initialisation
+     * - the tasks will be run in the order they are returned
+     */
+    getTasks(): Task[],
 }
 
 export interface Area {
