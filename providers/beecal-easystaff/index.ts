@@ -50,7 +50,7 @@ export class EasyStaffProvider implements TimetableProvider {
     }
 
     async #updateCoursesAndAreas() {
-        const response = await fetch(`${this.baseURL}/${this.comboCall}?aa=${this.academicYear}&page=corsi&sw=ec_`)
+        const response = await fetch(`${this.baseURL}/${this.comboCall}?aa=${encodeURIComponent(this.academicYear)}&page=corsi&sw=ec_`)
             .then(x => x.text())
             .then(x => new JSParser(x));
 
@@ -129,7 +129,16 @@ export class EasyStaffProvider implements TimetableProvider {
         while ((timetable.length == 0 || emptyWeeks <= 3) && (date.getTime() - new Date().getTime()) < ONE_DAY * 120) {
             const response: { celle: ESTimeTableEntry[] } = await fetch(`${this.baseURL}/${this.gridCall}`, {
                 method: "POST",
-                body: `view=easycourse&form-type=corso&include=corso&anno=${this.academicYear}&corso=${courseId}&visualizzazione_orario=cal&anno2[]=${curriculum}|${year}&date=${dateFormatter.format(date).replaceAll("/", "-")}`,
+                body: new URLSearchParams({
+                    view: "easycourse",
+                    "form-type": "corso",
+                    include: "corso",
+                    anno: this.academicYear!,
+                    corso: courseId,
+                    visualizzazione_orario: "cal",
+                    "anno2[]": `${curriculum}|${year}`,
+                    date: dateFormatter.format(date).replaceAll("/", "-"),
+                }),
                 headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" }
             }).then(x => x.json());
             date.setDate(date.getDate() + 7);
