@@ -1,6 +1,6 @@
 import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common/dist";
 
-const SEPARATOR = '%';
+const SEPARATOR = '$';
 
 function prependId(pre: string, post: string): string {
     return [pre, post].join(SEPARATOR);
