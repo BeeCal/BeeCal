@@ -41,5 +41,7 @@ function scheduleToCron(schedule) {
         case Schedule.Monthly:
             // Run at a random minute on a random day of the month, 02:00 to distribute load
             return `0 ${random()} 2 ${random(28)} * *`;
+        default:
+            throw new Error(`Invalid schedule: ${schedule}. You should never see this...`);
     }
 }
