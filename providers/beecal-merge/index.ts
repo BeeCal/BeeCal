@@ -37,7 +37,7 @@ export class MergeProvider implements TimetableProvider {
     }
 
     #getInstitution(id: string): TimetableProvider {
-        const institution = this.institutions.get("id");
+        const institution = this.institutions.get(id);
         if (institution === undefined) {
             throw new Error("The requested institution was not found");
         }
