@@ -4,7 +4,7 @@ import os from "node:os";
 import fs_stream from "node:fs";
 import csv from "csv-parser";
 import * as cheerio from "cheerio";
-import { Schedule, Task } from "beecal-common/dist/scheduling";
+import { Schedule, Task } from "beecal-common/scheduling";
 
 const OPENDATA_DIR = `${os.tmpdir()}/beecal-unibo`;
 const OPENDATA_FILE = `${OPENDATA_DIR}/corsi.csv`;
