@@ -26,7 +26,11 @@ export class MergeProvider implements TimetableProvider {
     institutionName: string = "";
     country: string = "ww";
     license: string = "";
-    institutions = new Map<string, TimetableProvider>();
+    institutions: Map<string, TimetableProvider>;
+
+    constructor(institutions: { id: string, provider: TimetableProvider }[]) {
+        this.institutions = new Map(institutions.map(x => [x.id, x.provider]));
+    }
 
     getInstitutions(): Institution[] {
         return Array.from(this.institutions.entries())

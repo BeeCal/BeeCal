@@ -1,7 +1,7 @@
 import { Area, Course, Curriculum, Lesson, Teaching, TimetableProvider } from "beecal-common";
 import { ESCourse, ESTimeTableEntry } from "./types";
 import { JSParser } from "./jsparser";
-import { Schedule, Task } from "beecal-common/scheduling";
+import { Schedule, Task } from "beecal-common";
 
 const ONE_DAY = 86400000;
 
