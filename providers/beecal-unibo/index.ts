@@ -162,38 +162,53 @@ export class UniboProvider implements TimetableProvider {
         }*/
         link += "&calendar_view=";
 
-        let json = await fetch(link).then(x => x.json());
-
+        let reqStart = new Date();
+        reqStart.setDate(reqStart.getDate() - 7);
+        let reqEnd = new Date(reqStart.getTime());
+        reqEnd.setDate(reqEnd.getDate() + 30);
         let calendar: Lesson[] = [];
-        for (var l of json) {
-            if (teachingIDsFilter !== undefined && !(teachingIDsFilter.has(l.extCode.split('|')[0]) || teachingIDsFilter.has(l.extCode))) {
-                continue;
+        let json = [];
+        let iterations = 0;
+
+        do {
+            json = await fetch(`${link}&start=${reqStart.toISOString().split('T')[0]}&end=${reqEnd.toISOString().split('T')[0]}`).then(x => x.json());
+
+            for (var l of json) {
+                if (teachingIDsFilter !== undefined && !(teachingIDsFilter.has(l.extCode.split('|')[0]) || teachingIDsFilter.has(l.extCode))) {
+                    continue;
+                }
+                const start = new Date(l.start);
+                const end = new Date(l.end);
+                var location = undefined;
+                if (l.aule && Array.isArray(l.aule) && l.aule.length > 0) {
+                    location = l.aule
+                        .map((x: { des_risorsa: string; des_indirizzo: string; }) => x.des_risorsa + ", " + x.des_indirizzo)
+                        .join("; ");
+                }
+                var url = undefined;
+                if (!(l.teams === undefined) && !(l.teams === null)) {
+                    url = encodeURI(l.teams);
+                }
+                var prof = null;
+                if (!(l.docente === undefined) && !(l.docente === null)) {
+                    prof = l.docente;
+                }
+                calendar.push({
+                    title: l.title,
+                    start,
+                    end,
+                    location,
+                    url,
+                    teacher: prof === null ? undefined : { name: prof as string, email: prof.toLowerCase().replace(/\s/g, ".") + "@unibo.it" }
+                });
+
             }
-            const start = new Date(l.start);
-            const end = new Date(l.end);
-            var location = undefined;
-            if (l.aule && Array.isArray(l.aule) && l.aule.length > 0) {
-                location = l.aule
-                    .map((x: { des_risorsa: string; des_indirizzo: string; }) => x.des_risorsa + ", " + x.des_indirizzo)
-                    .join("; ");
-            }
-            var url = undefined;
-            if (!(l.teams === undefined) && !(l.teams === null)) {
-                url = encodeURI(l.teams);
-            }
-            var prof = null;
-            if (!(l.docente === undefined) && !(l.docente === null)) {
-                prof = l.docente;
-            }
-            calendar.push({
-                title: l.title,
-                start,
-                end,
-                location,
-                url,
-                teacher: prof === null ? undefined : { name: prof as string, email: prof.toLowerCase().replace(/\s/g, ".") + "@unibo.it" }
-            });
-        }
+            reqStart = new Date(reqEnd.getTime());
+            reqStart.setDate(reqStart.getDate() + 1);
+            reqEnd = new Date(reqStart.getTime());
+            reqEnd.setDate(reqEnd.getDate() + 30);
+            iterations += 1;
+        } while (json.length > 0 && iterations <= 3);
         if (calendar.length == 0) {
             console.error(`The calendar at ${link} was empty!`);
         }
