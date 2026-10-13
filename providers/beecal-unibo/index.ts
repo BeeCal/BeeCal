@@ -167,7 +167,7 @@ export class UniboProvider implements TimetableProvider {
         let reqEnd = new Date(reqStart.getTime());
         reqEnd.setDate(reqEnd.getDate() + 30);
         let calendar: Lesson[] = [];
-        let json = undefined;
+        let json = [];
         let iterations = 0;
 
         do {
@@ -208,7 +208,7 @@ export class UniboProvider implements TimetableProvider {
                 reqEnd.setDate(reqEnd.getDate() + 30);
                 iterations += 1;
             }
-        } while ((json === undefined || json.length > 0) && iterations <= 3);
+        } while (json.length > 0 && iterations <= 3);
         if (calendar.length == 0) {
             console.error(`The calendar at ${link} was empty!`);
         }
