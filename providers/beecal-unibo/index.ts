@@ -206,8 +206,8 @@ export class UniboProvider implements TimetableProvider {
                 reqStart.setDate(reqStart.getDate() + 1);
                 reqEnd = new Date(reqStart.getTime());
                 reqEnd.setDate(reqEnd.getDate() + 30);
-                iterations += 1;
             }
+            iterations += 1;
         } while (json.length > 0 && iterations <= 3);
         if (calendar.length == 0) {
             console.error(`The calendar at ${link} was empty!`);
