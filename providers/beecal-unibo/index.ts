@@ -202,11 +202,11 @@ export class UniboProvider implements TimetableProvider {
                     teacher: prof === null ? undefined : { name: prof as string, email: prof.toLowerCase().replace(/\s/g, ".") + "@unibo.it" }
                 });
 
-                reqStart = new Date(reqEnd.getTime());
-                reqStart.setDate(reqStart.getDate() + 1);
-                reqEnd = new Date(reqStart.getTime());
-                reqEnd.setDate(reqEnd.getDate() + 30);
             }
+            reqStart = new Date(reqEnd.getTime());
+            reqStart.setDate(reqStart.getDate() + 1);
+            reqEnd = new Date(reqStart.getTime());
+            reqEnd.setDate(reqEnd.getDate() + 30);
             iterations += 1;
         } while (json.length > 0 && iterations <= 3);
         if (calendar.length == 0) {
